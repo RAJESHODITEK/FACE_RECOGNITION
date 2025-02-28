@@ -145,7 +145,7 @@ class Event():
                 base_query += " WHERE " + " AND ".join(conditions)
 
             # Add pagination
-            base_query += " ORDER BY e.start_time DESC OFFSET ? ROWS FETCH NEXT 10 ROWS ONLY"
+            base_query += " ORDER BY e.start_time DESC OFFSET ? ROWS FETCH NEXT 100 ROWS ONLY"
             params.append(i_start_index)
 
             cursor.execute(base_query, *params)

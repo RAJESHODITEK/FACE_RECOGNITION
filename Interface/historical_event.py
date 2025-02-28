@@ -601,6 +601,8 @@ class HistoricalEventInterface(CTkFrame):
         self.frame_maindropdown_window.rowconfigure(0, weight=1)
         self.frame_maindropdown_window.grid_propagate(False)
 
+
+
     def convert_rgb_to_bgr(self, image_param):
         try:
             # Handle different types of image inputs
@@ -633,153 +635,56 @@ class HistoricalEventInterface(CTkFrame):
             if image.mode != "RGB":
                 image = image.convert("RGB")
 
-            # Convert the image from RGB to BGR by reordering channels
-            r, g, b = image.split()
-            bgr_image = Image.merge("RGB", (b, g, r))
-            return bgr_image
+            return image
+
         except Exception as e:
             print(f"Error processing image: {e}")
             # Return a placeholder image when errors occur
             return Image.new('RGB', (230, 185), color=(200, 200, 200))
-    def show_ack_popup(self, message):
-        # Destroy any existing popup before creating a new one
-        # if self.popup.winfo_exists():
-        #     self.popup.lift()
-        #     return
 
+    def on_page_change(self):
+        if self.i_total_data == 0:
+            self.label_data_count.configure(
+                text="No Records Found!",
+                text_color="#FF0000"
+            )
+        else:
+            self.label_data_count.configure(
+                text=f"Showing {self.i_start_index} - {self.i_end_index} of {self.i_total_data} entries",
+                text_color="#2c2c2c"
+            )
 
-        self.popup = CTkToplevel(self)
-        self.popup.title("")
-        self.popup.configure(fg_color="#FFFFFF")
+        enabled_color = "#374151"
+        enabled_hover = "#1F2937"
+        enabled_text = "#FFFFFF"
 
-        # Remove window decorations
-        self.popup.overrideredirect(True)
-        self.popup.protocol("WM_DELETE_WINDOW", self.cleanup_popup)
-        # Get the cursor position for popup placement
-        cursor_x = self.popup.winfo_pointerx()
-        cursor_y = self.popup.winfo_pointery()
+        disabled_color = "#e6e6ff"
+        disabled_border = "#000000"
+        disabled_text = "#9CA3AF"
 
-        # Set popup dimensions
-        self.popup_width = 300
-        self.popup_height = 170
-
-        # Position popup near cursor
-        pos_x = cursor_x - (self.popup_width // 2)
-        pos_y = cursor_y - self.popup_height - 10
-
-        # Set the new position and size
-        self.popup.geometry(f"{self.popup_width}x{self.popup_height}+{pos_x}+{pos_y}")
-
-        # Create main content frame with premium styling
-        content_frame = CTkFrame(self.popup, fg_color="#1E293B", corner_radius=12)
-        content_frame.pack(fill="both", expand=True, padx=2, pady=3)
-
-        # Add a decorative header with premium color
-        header_frame = CTkFrame(content_frame, height=40, fg_color="#0F172A", corner_radius=10)
-        header_frame.pack(fill="x", padx=2, pady=(2, 5))
-
-        # Add logo/icon in header
-        logo_label = CTkLabel(
-            header_frame,
-            text="",
-            font=("", 20),
-            text_color="#60A5FA",
+        self.update_button_state(
+            button=self.button_previous,
+            state="disabled" if self.i_start_index <= 1 else "normal",
+            cursor="X_cursor" if self.i_start_index <= 1 else "hand2",
+            fg_color=disabled_color if self.i_start_index <= 1 else enabled_color,
+            hover_color=disabled_color if self.i_start_index <= 1 else enabled_hover,
+            # text_color=disabled_text if self.i_start_index <= 1 else enabled_text
         )
-        logo_label.pack(side="left", padx=10, pady=5)
 
-        # Add header text with premium styling
-        header_label = CTkLabel(
-            header_frame,
-            text="Acknowledgment Message",
-            font=("Inter", 14, "bold"),
-            text_color="#F1F5F9",
+        self.update_button_state(
+            button=self.button_next,
+            state="disabled" if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else "normal",
+            cursor="X_cursor" if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else "hand2",
+            fg_color=disabled_color if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else enabled_color,
+            hover_color=disabled_color if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else enabled_hover,
+            # text_color=disabled_text if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else enabled_text
         )
-        header_label.pack(side="left", padx=25, pady=5)
-
-        self.text_area = CTkTextbox(
-            content_frame,
-            width=280,
-            height=70,
-            font=("Inter", 12),
-            fg_color="#334155",
-            text_color="#F8FAFC",
-            border_color="#475569",
-            border_width=1,
-            corner_radius=8
-        )
-        self.text_area.pack(padx=10, pady=(5, 10))
-        self.text_area.insert("1.0", message)
-        self.text_area.configure(state="disabled")
-
-        close_button = CTkButton(
-            content_frame,
-            text="Close",
-            width=60,
-            height=35,
-            fg_color="#0066FF",
-            hover_color="#0052CC",
-            text_color="#FFFFFF",
-            corner_radius=4,
-            font=("", 12),
-            command=self.hide_popup
-        )
-        close_button.pack(pady=(0, 12))
-
-        # Add premium shadow effect
-        self.popup.configure(border_width=1, border_color="#1E293B")
-
-        # Make popup stay on top
-        self.popup.attributes('-topmost', True)
-
-        # Add binding to close popup when clicking outside
-        def check_mouse_position(event):
-            if not (0 <= event.x <= self.popup.winfo_width() and 0 <= event.y <= self.popup.winfo_height()):
-                self.hide_popup()
-
-        self.popup.bind('<Button-1>', check_mouse_position)
-
-        # Function to handle popup movement
-        # def move_popup(e):
-        #     self.popup.geometry(f'+{e.x_root - self.popup_width // 2}+{e.y_root - self.popup_height // 2}')
-        #
-        # #Allow dragging the popup by the header
-        # header_frame.bind('<B1-Motion>', move_popup)
-        #
-        # #Bind the popup destruction to the widget destruction
-        # self.bind('<Destroy>', lambda e: self.cleanup_popup())
-
-    def hide_popup(self):
-
-        if hasattr(self, 'popup') and self.popup.winfo_exists():
-            self.popup.destroy()
-
-
-    def cleanup_popup(self):
-        """Ensure popup is destroyed when the main widget is destroyed"""
-        if hasattr(self, 'popup'):
-            self.popup.destroy()
-        if hasattr(self, 'ack_window'):
-            self.ack_window.destroy()
-
-    def on_row_click(self, event, event_id_current, vehicle_number, personimg=None, capturedimg=None, eventdata=None,
-                     eventType=None):
-        print(f"Row {event_id_current} clicked! Vehicle: {vehicle_number} with {eventType}")
-        self.current_vehicle_number = vehicle_number
-        self.current_vehicle_id = event_id_current
-        self.current_person_image = personimg
-        self.current_captured_image = capturedimg
-        self.current_event_details = eventdata
-        self.eventType = eventType
-
-    def format_label(self, label, max_length=12):
-        return f"{label.ljust(max_length)} : "
 
     def update_table(self, list_historical_events: list):
         event_details = None
         # Clear existing table content
         for child in self.frame_table.winfo_children():
             child.destroy()
-
 
         # Define premium color scheme with consistent row color
         COLORS = {
@@ -797,22 +702,22 @@ class HistoricalEventInterface(CTkFrame):
             "border": "#E2E8F0"  # Light border color
         }
 
-        # Status configuration with premium styling
+        # Status configuration with premium styling - Updated border colors
         status_config = {
             0: {
-                "border_color": COLORS["warning"],
+                "border_color": COLORS["warning"],  # Orange for Unknown
                 "status": "Unknown",
                 "bg_color": "#FFF7ED",
                 "icon": "⚠️"
             },
             1: {
-                "border_color": COLORS["success"],
+                "border_color": COLORS["success"],  # Green for Verified
                 "status": "Verified",
                 "bg_color": "#ECFDF5",
                 "icon": "✓"
             },
             2: {
-                "border_color": COLORS["danger"],
+                "border_color": COLORS["danger"],  # Red for Restricted
                 "status": "Restricted",
                 "bg_color": "#FEF2F2",
                 "icon": "⛔"
@@ -827,31 +732,51 @@ class HistoricalEventInterface(CTkFrame):
             height=60
         )
         header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 15))
-        header_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
         header_frame.grid_propagate(False)
 
-        # Stylish header columns with icons
-        header_data = [
-            {"text": "Captured Image", "icon": "📸"},
-            {"text": "Identity Details", "icon": "🪪"},
-            {"text": "Activity Timeline", "icon": "📊"},
-            {"text": "Actual Image", "icon": "👤"}
-        ]
+        # Create separate header labels that you can position individually
+        header_1 = CTkLabel(
+            header_frame,
+            #text="📸 Captured Image",
+            text="Captured Image",
+            font=CTkFont(family="Helvetica", size=16, weight="bold"),
+            text_color="white",
+            anchor="center",
+        )
 
-        for idx, header in enumerate(header_data):
-            header_container = CTkFrame(
-                header_frame,
-                fg_color="transparent"
-            )
-            header_container.grid(row=0, column=idx, padx=10, pady=15, sticky="ew")
+        header_2 = CTkLabel(
+            header_frame,
+            #text="🪪 Identity Details",
+            text="Identity Details",
+            font=CTkFont(family="Helvetica", size=16, weight="bold"),
+            text_color="white",
+            anchor="center",
+        )
 
-            CTkLabel(
-                header_container,
-                text=f"{header['icon']} {header['text']}",
-                font=CTkFont(family="Helvetica", size=16, weight="bold"),
-                text_color="white",
-                anchor="center",
-            ).pack(expand=True)
+        header_3 = CTkLabel(
+            header_frame,
+            #text="📊 Activity Timeline",
+            text="Activity Timeline",
+            font=CTkFont(family="Helvetica", size=16, weight="bold"),
+            text_color="white",
+            anchor="center",
+        )
+
+        header_4 = CTkLabel(
+            header_frame,
+            #text="👤 Actual Image",
+            text="Actual Image",
+            font=CTkFont(family="Helvetica", size=16, weight="bold"),
+            text_color="white",
+            anchor="center",
+        )
+
+        # Now you can place these headers manually using place() instead of grid or pack
+        # These are example placements - adjust x and y coordinates as needed
+        header_1.place(relx=0.1, rely=0.5, anchor="center")
+        header_2.place(relx=0.29, rely=0.5, anchor="center")
+        header_3.place(relx=0.58, rely=0.5, anchor="center")
+        header_4.place(relx=0.875, rely=0.5, anchor="center")
 
         # Add elegant spacing
         spacer = CTkFrame(self.frame_table, height=5, fg_color="transparent")
@@ -871,7 +796,6 @@ class HistoricalEventInterface(CTkFrame):
             image_width, image_height = 230, 185
 
             # Resize with high-quality resampling
-
 
             # Apply image enhancements for person image
             person_img_pil = bgr_image_of_person.resize(
@@ -912,7 +836,13 @@ class HistoricalEventInterface(CTkFrame):
             frame_row.grid(row=row_index + 2, column=0, sticky="nsew", padx=20, pady=12)
 
             # Get current status
-            alarm_value = int(row_data.get("alarm", "0"))
+            status = row_data.get("status", "0")
+            alarm_value = 0
+            if status == 'white-list':
+                alarm_value = 1  # Verified (green)
+            elif status == 'black-list':
+                alarm_value = 2  # Restricted (red)
+            # else stays 0 (Unknown - orange)
 
             # SWAPPED: Now showing captured image in first column
             # Apply status-specific border color to captured image container
@@ -920,7 +850,7 @@ class HistoricalEventInterface(CTkFrame):
                 frame_row,
                 corner_radius=15,
                 fg_color=COLORS["accent"],
-                border_width=1,
+                border_width=2,  # Increased border width for better visibility
                 border_color=status_config[alarm_value]["border_color"]  # Status-specific border color
             )
             img_frame.grid(row=0, column=0, sticky="w", padx=20, pady=15)
@@ -988,7 +918,6 @@ class HistoricalEventInterface(CTkFrame):
                 1: "Verified",
                 2: "Restricted"
             }
-            alarm_value = int(row_data.get("alarm", "0"))
             person_type = status_types.get(alarm_value, "Unknown")
 
             # Format timestamps with elegant styling
@@ -1066,9 +995,8 @@ class HistoricalEventInterface(CTkFrame):
                         font=CTkFont(family="Helvetica", size=13, weight="bold"),
                         text_color="white",
                         fg_color=status_config[alarm_value]["border_color"],
-                        #fg_color="red",
                         corner_radius=4,
-                        width=130,
+                        width=200,
                         height=26
                     )
                     status_label.pack(side="left", padx=1)
@@ -1195,9 +1123,6 @@ class HistoricalEventInterface(CTkFrame):
             ).pack(side="top", anchor="w")
 
             # Get current status configuration
-            alarm_value = int(row_data.get("alarm", "0"))
-            current_status = status_config.get(alarm_value)
-
             event_id_current = row_data.get("event_id", "")
             person_name_current = row_data.get("person_name", "")
             eventType = alarm_value
@@ -1745,6 +1670,131 @@ class HistoricalEventInterface(CTkFrame):
 
         if hasattr(self, 'on_form_ready'):
             self.on_form_ready()
+
+
+
+    def show_ack_popup(self, message):
+        # Destroy any existing popup before creating a new one
+        # if self.popup.winfo_exists():
+        #     self.popup.lift()
+        #     return
+
+
+        self.popup = CTkToplevel(self)
+        self.popup.title("")
+        self.popup.configure(fg_color="#FFFFFF")
+
+        # Remove window decorations
+        self.popup.overrideredirect(True)
+        self.popup.protocol("WM_DELETE_WINDOW", self.cleanup_popup)
+        # Get the cursor position for popup placement
+        cursor_x = self.popup.winfo_pointerx()
+        cursor_y = self.popup.winfo_pointery()
+
+        # Set popup dimensions
+        self.popup_width = 300
+        self.popup_height = 170
+
+        # Position popup near cursor
+        pos_x = cursor_x - (self.popup_width // 2)
+        pos_y = cursor_y - self.popup_height - 10
+
+        # Set the new position and size
+        self.popup.geometry(f"{self.popup_width}x{self.popup_height}+{pos_x}+{pos_y}")
+
+        # Create main content frame with premium styling
+        content_frame = CTkFrame(self.popup, fg_color="#1E293B", corner_radius=12)
+        content_frame.pack(fill="both", expand=True, padx=2, pady=3)
+
+        # Add a decorative header with premium color
+        header_frame = CTkFrame(content_frame, height=40, fg_color="#0F172A", corner_radius=10)
+        header_frame.pack(fill="x", padx=2, pady=(2, 5))
+
+        # Add logo/icon in header
+        logo_label = CTkLabel(
+            header_frame,
+            text="",
+            font=("", 20),
+            text_color="#60A5FA",
+        )
+        logo_label.pack(side="left", padx=10, pady=5)
+
+        # Add header text with premium styling
+        header_label = CTkLabel(
+            header_frame,
+            text="Acknowledgment Message",
+            font=("Inter", 14, "bold"),
+            text_color="#F1F5F9",
+        )
+        header_label.pack(side="left", padx=25, pady=5)
+
+        self.text_area = CTkTextbox(
+            content_frame,
+            width=280,
+            height=70,
+            font=("Inter", 12),
+            fg_color="#334155",
+            text_color="#F8FAFC",
+            border_color="#475569",
+            border_width=1,
+            corner_radius=8
+        )
+        self.text_area.pack(padx=10, pady=(5, 10))
+        self.text_area.insert("1.0", message)
+        self.text_area.configure(state="disabled")
+
+        close_button = CTkButton(
+            content_frame,
+            text="Close",
+            width=60,
+            height=35,
+            fg_color="#0066FF",
+            hover_color="#0052CC",
+            text_color="#FFFFFF",
+            corner_radius=4,
+            font=("", 12),
+            command=self.hide_popup
+        )
+        close_button.pack(pady=(0, 12))
+
+        # Add premium shadow effect
+        self.popup.configure(border_width=1, border_color="#1E293B")
+
+        # Make popup stay on top
+        self.popup.attributes('-topmost', True)
+
+        # Add binding to close popup when clicking outside
+        def check_mouse_position(event):
+            if not (0 <= event.x <= self.popup.winfo_width() and 0 <= event.y <= self.popup.winfo_height()):
+                self.hide_popup()
+
+        self.popup.bind('<Button-1>', check_mouse_position)
+
+    def hide_popup(self):
+
+        if hasattr(self, 'popup') and self.popup.winfo_exists():
+            self.popup.destroy()
+
+
+    def cleanup_popup(self):
+        """Ensure popup is destroyed when the main widget is destroyed"""
+        if hasattr(self, 'popup'):
+            self.popup.destroy()
+        if hasattr(self, 'ack_window'):
+            self.ack_window.destroy()
+
+    def on_row_click(self, event, event_id_current, vehicle_number, personimg=None, capturedimg=None, eventdata=None,
+                     eventType=None):
+        print(f"Row {event_id_current} clicked! Vehicle: {vehicle_number} with {eventType}")
+        self.current_vehicle_number = vehicle_number
+        self.current_vehicle_id = event_id_current
+        self.current_person_image = personimg
+        self.current_captured_image = capturedimg
+        self.current_event_details = eventdata
+        self.eventType = eventType
+
+    def format_label(self, label, max_length=12):
+        return f"{label.ljust(max_length)} : "
     def create_tooltip(self, widget, text):
         # Create a toplevel window for the tooltip
         tooltip = CTkToplevel()
@@ -1900,43 +1950,6 @@ class HistoricalEventInterface(CTkFrame):
 
         self.close_dropdown(None)
 
-    def on_page_change(self):
-        if self.i_total_data == 0:
-            self.label_data_count.configure(
-                text="No Records Found!",
-                text_color="#FF0000"
-            )
-        else:
-            self.label_data_count.configure(
-                text=f"Showing {self.i_start_index} - {self.i_end_index} of {self.i_total_data} entries",
-                text_color="#2c2c2c"
-            )
-
-        enabled_color = "#374151"
-        enabled_hover = "#1F2937"
-        enabled_text = "#FFFFFF"
-
-        disabled_color = "#e6e6ff"
-        disabled_border = "#000000"
-        disabled_text = "#9CA3AF"
-
-        self.update_button_state(
-            button=self.button_previous,
-            state="disabled" if self.i_start_index <= 1 else "normal",
-            cursor="X_cursor" if self.i_start_index <= 1 else "hand2",
-            fg_color=disabled_color if self.i_start_index <= 1 else enabled_color,
-            hover_color=disabled_color if self.i_start_index <= 1 else enabled_hover,
-            # text_color=disabled_text if self.i_start_index <= 1 else enabled_text
-        )
-
-        self.update_button_state(
-            button=self.button_next,
-            state="disabled" if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else "normal",
-            cursor="X_cursor" if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else "hand2",
-            fg_color=disabled_color if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else enabled_color,
-            hover_color=disabled_color if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else enabled_hover,
-            # text_color=disabled_text if self.i_end_index >= self.i_total_data or self.i_end_index == 0 else enabled_text
-        )
 
     def update_button_state(self, button, state, cursor, fg_color, hover_color):
         button.configure(state=state, cursor=cursor, fg_color=fg_color)
