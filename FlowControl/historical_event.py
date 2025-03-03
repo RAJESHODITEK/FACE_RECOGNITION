@@ -269,7 +269,7 @@ class HistoricalEventController:
         }
         print( " data format " , dict_filter_criteria)
 
-        entry, exit, balance = self.obj_core.obj_event.fetch_vehicle_data_and_count(dict_filter_criteria)
-        self.obj_HistoricalEventInterface.label_Entry_count_value.configure(text=entry)
-        self.obj_HistoricalEventInterface.label_Exit_count_value.configure(text=exit)
-        self.obj_HistoricalEventInterface.label_Balance_count_value.configure(text=balance)
+        # entry, exit, balance = self.obj_core.obj_event.fetch_vehicle_data_and_count(dict_filter_criteria)
+        # self.obj_HistoricalEventInterface.label_Entry_count_value.configure(text=entry)
+        # self.obj_HistoricalEventInterface.label_Exit_count_value.configure(text=exit)
+        # self.obj_HistoricalEventInterface.label_Balance_count_value.configure(text=balance)

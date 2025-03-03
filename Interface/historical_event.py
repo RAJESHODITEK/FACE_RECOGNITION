@@ -30,6 +30,8 @@ class HistoricalEventInterface(CTkFrame):
         self.add_vehicle_button= None
         self.configure(fg_color="#F1F5FA", corner_radius=0)
 
+        self.image_references = []  # List to store image references
+
         self.i_start_index = 0
         self.i_end_index = 0
         self.i_total_data = 0
@@ -1215,6 +1217,7 @@ class HistoricalEventInterface(CTkFrame):
                 font=CTkFont(family="Helvetica", size=14),
                 text_color=COLORS["text_secondary"]
             ).pack()
+
     def create_acknowledgment_frame(self, event_data=None, vehicle_data=None, person_image=None,
                                     captured_image=None, data=None, eventType: int = None):
         # First, properly cleanup any existing window
@@ -1222,43 +1225,61 @@ class HistoricalEventInterface(CTkFrame):
 
         # Determine event type and heading based on eventType
         event_type_map = {
-            0: {"type": "Unknown", "heading": "Un-Registered Person Details", "color": "#FFC107"},  # Amber for unknown
-            1: {"type": "Verified", "heading": "Authorized Person Details", "color": "#4CAF50"},  # Green for authorized
-            2: {"type": "Blacklisted", "heading": "Restricted Person Details", "color": "#F44336"}  # Red for restricted
+            0: {"type": "Unknown", "heading": "Un-Registered Person Details", "color": "#FFC107", "icon": "⚠️"},
+            # Amber for unknown
+            1: {"type": "Verified", "heading": "Authorized Person Details", "color": "#4CAF50", "icon": "✅"},
+            # Green for authorized
+            2: {"type": "Restricted", "heading": "Restricted Person Details", "color": "#F44336", "icon": "🚫"}
+            # Red for restricted
         }
 
         event_info = event_type_map.get(eventType, {"type": "Unknown", "heading": "Un-Registered Person Details",
-                                                    "color": "#FFC107"})
+                                                    "color": "#FFC107", "icon": "⚠️"})
         event_type = event_info["type"]
         heading = event_info["heading"]
         status_color = event_info["color"]
+        status_icon = event_info["icon"]
 
-        # Process event data
-        if event_data is None and data:
-            event_data = [
-                {"label": "Person Name", "value": data[0]},
-                {"label": "Event No", "value": "35098"},
-                {"label": "Gender", "value": "Leaving"},
-                {"label": "Starting Time", "value": "05.17:35"},
-                {"label": "Status", "value": event_type}
-            ]
-        else:
-            event_data = [
-                {"label": "Person Name", "value": event_data.get("vehicle_number", "N/A")},
-                {"label": "Event No", "value": event_data.get("event_id", "N/A")},
-                {"label": "Gender", "value": event_data.get("status", "N/A")},
-                {"label": "Starting Time", "value": event_data.get("time", "N/A")},
-                {"label": "Status", "value": event_type}
-            ]
+        # Extract data from event_data
+        person_name = ""
+        event_id = ""
+        gender = ""
+        age = ""
+        start_time = ""
+        end_time = ""
+        status = event_type
+        camera_name = "Entry Gate"  # Default value as shown in update_table
 
-        if vehicle_data is None and data:
-            vehicle_data = [
-                {"label": "Model Name", "value": data[3]},
-                {"label": "Color", "value": data[5]},
-                {"label": "Vehicle Type", "value": data[4]},
-                {"label": "Mfg Year", "value": data[7]},
-                {"label": "Owner Name", "value": data[6]}
-            ]
+        # Format timestamps with elegant styling
+        from datetime import datetime
+
+        def format_timestamp(timestamp_value):
+            if not timestamp_value:
+                return "N/A"
+            try:
+                timestamp = float(timestamp_value)
+                if timestamp > 0:
+                    return datetime.fromtimestamp(timestamp).strftime('%b %d, %Y • %H:%M:%S')
+                return "N/A"
+            except (ValueError, TypeError):
+                return str(timestamp_value)
+
+        # Process event data correctly
+        if data:
+            # When called directly with data array
+            person_name = data[0]
+            event_id = "35098"  # Default if not present
+            gender = data.get(2, "N/A") if isinstance(data, dict) else "N/A"
+            start_time = "N/A"
+            end_time = "N/A"
+        elif event_data:
+            # When called with event_data dictionary from update_table
+            person_name = event_data.get("person_name", "N/A")
+            event_id = event_data.get("event_id", "N/A")
+            gender = event_data.get("person_gender", "N/A")
+            age = event_data.get("person_age", "N/A")
+            start_time = format_timestamp(event_data.get("start_time"))
+            end_time = format_timestamp(event_data.get("end_time"))
 
         # Window setup with modern dark theme
         self.ack_window = CTkToplevel()
@@ -1367,7 +1388,7 @@ class HistoricalEventInterface(CTkFrame):
         )
         info_boxes_frame.pack(pady=5, padx=20, fill="both", expand=True)
 
-        # Left Box for Person Image with enhanced styling
+        # Left Box for Captured Image with enhanced styling
         left_box = CTkFrame(
             info_boxes_frame,
             fg_color="#1A2138",
@@ -1391,59 +1412,170 @@ class HistoricalEventInterface(CTkFrame):
 
         CTkLabel(
             left_header,
-            text="FACIAL IDENTIFICATION",
+            text="CAPTURED IMAGE",  # Updated to match update_table terminology
             font=("Inter", 14, "bold"),
             text_color="#FFFFFF",
             bg_color="transparent"
         ).pack(pady=5)
 
-        # Person Image Container with overlay effects
-        if person_image:
-            person_image_container = CTkFrame(
-                left_box,
-                fg_color="transparent",
+        # Captured Image Container with scanning animation and overlay effects
+        # Create the main container for the image
+        person_image_container = CTkFrame(
+            left_box,
+            fg_color="transparent",
+        )
+        person_image_container.pack(expand=True, fill="both", padx=20, pady=(5, 20))
+
+        # Image frame with border
+        image_frame = CTkFrame(
+            person_image_container,
+            fg_color="#121828",
+            corner_radius=8,
+            border_width=1,
+            border_color="#3B4B88"
+        )
+        image_frame.pack(expand=True, fill="both")
+
+        # Calculate appropriate image size
+        container_width = 380
+        container_height = 280
+
+        # Create a placeholder for animation and the actual image
+        scanning_placeholder = CTkFrame(
+            image_frame,
+            fg_color="#121828",
+            width=container_width,
+            height=container_height,
+        )
+        scanning_placeholder.pack(expand=True, pady=10, padx=10)
+
+        # Create elements for the scanning animation
+        scanning_text = CTkLabel(
+            scanning_placeholder,
+            text="SCANNING...",
+            font=("Inter", 16, "bold"),
+            text_color="#4D79FF",
+        )
+        scanning_text.place(relx=0.5, rely=0.2, anchor="center")
+
+        # Create a scan line that will move
+        scan_line = CTkFrame(
+            scanning_placeholder,
+            width=container_width - 20,
+            height=2,
+            fg_color="#4D79FF"
+        )
+        scan_line.place(relx=0.5, rely=0.3, anchor="center")
+
+        # Add a face detection overlay box
+        face_box = CTkFrame(
+            scanning_placeholder,
+            width=150,
+            height=150,
+            fg_color="transparent",
+            border_width=2,
+            border_color="#4D79FF",
+            corner_radius=5
+        )
+        face_box.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Add detection points to the corners of the face box
+        for x_pos, y_pos in [(0, 0), (1, 0), (0, 1), (1, 1)]:
+            point = CTkFrame(
+                face_box,
+                width=6,
+                height=6,
+                fg_color="#4D79FF",
+                corner_radius=3
             )
-            person_image_container.pack(expand=True, fill="both", padx=20, pady=(5, 20))
+            point.place(relx=x_pos, rely=y_pos, anchor="center")
 
-            # Calculate appropriate image size
-            container_width = 380
-            container_height = 280
-            person_imagen = self.resize_ctk_image(person_image, (container_width, container_height))
+        # Add processing status text
+        processing_status = CTkLabel(
+            scanning_placeholder,
+            text="Processing facial features...",
+            font=("Inter", 12),
+            text_color="#6D7A9E",
+        )
+        processing_status.place(relx=0.5, rely=0.8, anchor="center")
 
-            # Image with facial recognition overlay hint
-            image_frame = CTkFrame(
-                person_image_container,
-                fg_color="#121828",
-                corner_radius=8,
-                border_width=1,
-                border_color="#3B4B88"
+        # Function to animate the scan line
+        def animate_scan_line(current_pos=0.3, direction=1):
+            if not hasattr(self, 'ack_window') or not self.ack_window.winfo_exists():
+                return
+
+            new_pos = current_pos + 0.02 * direction
+            if new_pos > 0.7:
+                direction = -1
+                new_pos = 0.7
+            elif new_pos < 0.3:
+                direction = 1
+                new_pos = 0.3
+
+            # Move the scan line
+            scan_line.place(relx=0.5, rely=new_pos, anchor="center")
+
+            # Call this function again after a short delay
+            self.ack_window.after(50, lambda: animate_scan_line(new_pos, direction))
+
+        # Start the scan line animation
+        animate_scan_line()
+
+        # Function to show the final captured image after animation
+        def show_final_image():
+            if not hasattr(self, 'ack_window') or not self.ack_window.winfo_exists():
+                return
+
+            # Remove all animation components
+            scanning_text.destroy()
+            scan_line.destroy()
+            face_box.destroy()
+            processing_status.destroy()
+
+            # Show "ANALYSIS COMPLETE" message briefly
+            complete_message = CTkLabel(
+                scanning_placeholder,
+                text="ANALYSIS COMPLETE",
+                font=("Inter", 16, "bold"),
+                text_color="#4CAF50",
             )
-            image_frame.pack(expand=True, fill="both")
+            complete_message.place(relx=0.5, rely=0.5, anchor="center")
 
-            CTkLabel(
-                image_frame,
-                image=person_imagen,
-                text="",
-            ).pack(expand=True, pady=10, padx=10)
-        else:
-            # Placeholder for when no image is available
-            placeholder_frame = CTkFrame(
-                left_box,
-                fg_color="#121828",
-                corner_radius=8,
-                border_width=1,
-                border_color="#3B4B88",
-                width=380,
-                height=280
-            )
-            placeholder_frame.pack(expand=True, fill="both", padx=20, pady=(5, 20))
+            # After 500ms, show the actual image
+            self.ack_window.after(500, lambda: display_captured_image(complete_message))
 
-            CTkLabel(
-                placeholder_frame,
-                text="NO FACIAL DATA",
-                font=("Inter", 14),
-                text_color="#6D7A9E",
-            ).pack(expand=True)
+        # Function to display the final captured image
+        def display_captured_image(message_label=None):
+            if not hasattr(self, 'ack_window') or not self.ack_window.winfo_exists():
+                return
+
+            # Remove the message if provided
+            if message_label:
+                message_label.destroy()
+
+            # Clear the placeholder
+            scanning_placeholder.destroy()
+
+            # Display the actual captured image with a fade-in effect
+            if captured_image:
+                captured_imagen = self.resize_ctk_image(captured_image, (container_width, container_height))
+                image_label = CTkLabel(
+                    image_frame,
+                    image=captured_imagen,
+                    text="",
+                )
+                image_label.pack(expand=True, pady=10, padx=10)
+            else:
+                # Placeholder if no image is available
+                CTkLabel(
+                    image_frame,
+                    text="NO CAPTURED IMAGE",
+                    font=("Inter", 14),
+                    text_color="#6D7A9E",
+                ).pack(expand=True)
+
+        # Schedule the switch to the final image after 2 seconds
+        self.ack_window.after(2000, show_final_image)
 
         # Right Box with enhanced styling
         right_box = CTkFrame(
@@ -1458,8 +1590,7 @@ class HistoricalEventInterface(CTkFrame):
         right_box.pack(side="right", padx=(10, 0), fill="both", expand=True)
         right_box.pack_propagate(False)
 
-        # Right box header
-        person_name = data[0] if data else event_data[0]["value"]
+        # Right box header with the person's name
         name_header = CTkFrame(
             right_box,
             fg_color="#232942",  # Slightly darker than the box
@@ -1470,7 +1601,7 @@ class HistoricalEventInterface(CTkFrame):
 
         CTkLabel(
             name_header,
-            text="Anupriya Shahdeo",
+            text=person_name,  # Using the actual person name
             font=("Inter", 18, "bold"),
             text_color="#FFFFFF",
             bg_color="transparent"
@@ -1483,7 +1614,7 @@ class HistoricalEventInterface(CTkFrame):
         )
         right_content_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
-        # Image frame with enhanced border for captured image
+        # Image frame with enhanced border - Now showing person_image (Actual Image)
         capture_frame = CTkFrame(
             right_content_frame,
             fg_color="#121828",
@@ -1496,18 +1627,18 @@ class HistoricalEventInterface(CTkFrame):
         capture_frame.pack(side="left", padx=(0, 15), anchor="nw")
         capture_frame.pack_propagate(False)
 
-
-        if captured_image:
+        # Now showing actual person image
+        if person_image:
             inner_frame = CTkFrame(
                 capture_frame,
                 fg_color="transparent",
             )
             inner_frame.pack(expand=True, fill="both", padx=8, pady=8)
 
-            captured_imagen = self.resize_ctk_image(captured_image, (160, 160))
+            person_imagen = self.resize_ctk_image(person_image, (160, 160))
             CTkLabel(
                 inner_frame,
-                image=captured_imagen,
+                image=person_imagen,
                 text="",
             ).pack(expand=True, fill="both")
         else:
@@ -1523,23 +1654,18 @@ class HistoricalEventInterface(CTkFrame):
 
             CTkLabel(
                 dummy_frame,
-                text="Live Capture",
+                text="ACTUAL IMAGE",
                 text_color="#6D7A9E",
                 font=("Inter", 12)
             ).pack(expand=True)
 
-        # Split data fields into two sections - main data and the two fields that need to start from bottom of image
+        # Main data fields matching update_table
         main_data = [
-            {"label": "Age", "value": "35", "icon": "👤"},
-            {"label": "Gender", "value": "Male", "icon": "📏"},
-            {"label": "Person Type", "value": "185 lbs", "icon": "⚖️"},
-            {"label": "Hair Color", "value": "Black", "icon": "💈"},
-            {"label": "Eye Color", "value": "Brown", "icon": "👁️"}
-        ]
-
-        bottom_data = [
-            {"label": "Starting Time", "value": "2025-12-1 20:35", "icon": "⌚"},
-            {"label": "Ending Time", "value": "2025-12-1 20:35", "icon": "⌚"}
+            {"label": "Event ID", "value": event_id, "icon": "👤"},
+            {"label": "Age", "value": age, "icon": "🔢"},
+            {"label": "Gender", "value": gender, "icon": "⚧️"},
+            {"label": "Status", "value": status, "icon": status_icon},  # Using the icon from event_type_map
+            {"label": "Camera Name", "value": camera_name, "icon": "📸"}
         ]
 
         # Main data frame for standard fields
@@ -1578,57 +1704,135 @@ class HistoricalEventInterface(CTkFrame):
                 width=100  # Fixed width for alignment
             ).pack(side="left", padx=(5, 0))
 
-            CTkLabel(
-                row_frame,
-                text=item["value"],
-                font=("Inter", 12),
-                text_color="#FFFFFF",
-                anchor="w"
-            ).pack(side="left")
-
-        # Create a container for the address and marital status that will be positioned below the image
-        bottom_container = CTkFrame(
-            right_box,
-            fg_color="transparent"
-        )
-        bottom_container.pack(fill="x", padx=15, pady=(0, 50), side="bottom")
-
-        # Add address and marital status fields
-        for item in bottom_data:
-            row_frame = CTkFrame(
-                bottom_container,
-                fg_color="#232942",
-                corner_radius=6,
-                height=28
-            )
-            row_frame.pack(fill="x", pady=4, anchor="w")
-
-            # Optional icon for visual enhancement
-            if "icon" in item:
+            # Special styling for status field
+            if item["label"] == "Status":
+                status_value_label = CTkLabel(
+                    row_frame,
+                    text=item["value"],
+                    font=("Inter", 12, "bold"),
+                    text_color="white",
+                    fg_color=status_color,
+                    corner_radius=4,
+                    width=100,
+                    height=22
+                )
+                status_value_label.pack(side="left", padx=(5, 0))
+            else:
                 CTkLabel(
                     row_frame,
-                    text=item["icon"],
+                    text=item["value"],
                     font=("Inter", 12),
-                    width=25,
+                    text_color="#FFFFFF",
                     anchor="w"
-                ).pack(side="left", padx=(8, 0))
+                ).pack(side="left", padx=(5, 0))
 
-            CTkLabel(
-                row_frame,
-                text=item["label"] + ":",
-                font=("Inter", 12, "bold"),
-                text_color="#A0AEC0",  # Lighter gray for label
-                anchor="w",
-                width=100  # Fixed width for alignment
-            ).pack(side="left", padx=(5, 0))
+        # Create a container for timeline data (first seen & last seen)
+        timeline_container = CTkFrame(
+            right_box,
+            fg_color="#232942",
+            corner_radius=8,
+            border_width=1,
+            border_color="#3B4B88"
+        )
+        timeline_container.pack(fill="x", padx=15, pady=(10, 20), side="bottom")
 
-            CTkLabel(
-                row_frame,
-                text=item["value"],
-                font=("Inter", 12),
-                text_color="#FFFFFF",
-                anchor="w"
-            ).pack(side="left")
+        # Timeline entries container
+        timeline_entries = CTkFrame(
+            timeline_container,
+            fg_color="transparent"
+        )
+        timeline_entries.pack(fill="x", padx=15, pady=10)
+
+        # First seen entry with small green dot
+        first_seen_frame = CTkFrame(
+            timeline_entries,
+            fg_color="transparent"
+        )
+        first_seen_frame.pack(fill="x", pady=(0, 5))
+
+        # Small green dot (10x10 pixels)
+        first_seen_dot = CTkFrame(
+            first_seen_frame,
+            width=10,
+            height=10,
+            corner_radius=5,
+            fg_color="#4CAF50"  # Green
+        )
+        first_seen_dot.pack(side="left", padx=(5, 10))
+
+        # First seen content
+        first_seen_content = CTkFrame(
+            first_seen_frame,
+            fg_color="transparent"
+        )
+        first_seen_content.pack(side="left", fill="x", expand=True)
+
+        CTkLabel(
+            first_seen_content,
+            text="First Seen:",
+            font=("Inter", 13, "bold"),
+            text_color="#A0AEC0",
+            anchor="w",
+            width=80  # Fixed width for alignment
+        ).pack(side="left", padx=(0, 5))
+
+        CTkLabel(
+            first_seen_content,
+            text=start_time if start_time else "N/A",  # Ensure we display N/A if empty
+            font=("Inter", 12),
+            text_color="#FFFFFF",
+            anchor="w"
+        ).pack(side="left")
+
+        # Add connector line
+        line_frame = CTkFrame(
+            timeline_entries,
+            width=2,
+            height=20,
+            fg_color="#3B4B88"
+        )
+        line_frame.pack(padx=(9, 0), anchor="w")
+
+        # Last seen entry with small red dot
+        last_seen_frame = CTkFrame(
+            timeline_entries,
+            fg_color="transparent"
+        )
+        last_seen_frame.pack(fill="x", pady=(5, 0))
+
+        # Small red dot (10x10 pixels)
+        last_seen_dot = CTkFrame(
+            last_seen_frame,
+            width=10,
+            height=10,
+            corner_radius=5,
+            fg_color="#F44336"  # Red
+        )
+        last_seen_dot.pack(side="left", padx=(5, 10))
+
+        # Last seen content
+        last_seen_content = CTkFrame(
+            last_seen_frame,
+            fg_color="transparent"
+        )
+        last_seen_content.pack(side="left", fill="x", expand=True)
+
+        CTkLabel(
+            last_seen_content,
+            text="Last Seen:",
+            font=("Inter", 13, "bold"),
+            text_color="#A0AEC0",
+            anchor="w",
+            width=80  # Fixed width for alignment
+        ).pack(side="left", padx=(0, 5))
+
+        CTkLabel(
+            last_seen_content,
+            text=end_time if end_time else "N/A",  # Ensure we display N/A if empty
+            font=("Inter", 12),
+            text_color="#FFFFFF",
+            anchor="w"
+        ).pack(side="left")
 
         # Footer with action buttons
         footer_frame = CTkFrame(
@@ -1670,7 +1874,6 @@ class HistoricalEventInterface(CTkFrame):
 
         if hasattr(self, 'on_form_ready'):
             self.on_form_ready()
-
 
 
     def show_ack_popup(self, message):
