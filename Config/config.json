@@ -1,0 +1,29 @@
+{
+    "app_name": "ALPR",
+    "version": "1.0.0",
+    "settings": {
+        "language": "en"
+    },
+    "audio": "ON",
+    "database": {
+        "dsn": "ALPR_DB_DSN",
+        "user": "sa",
+        "password": "root1234",
+        "db_name": "ALPR_DB_NEW"
+    },
+    "model_details": {
+        "license_plate_detection_model_path": "D:\\DEV_WORKSPACE\\Python\\ObjectTrackingAlgoDetectionTensorRT\\ObjectTracking_Detection_TensorRT\\temp\\bigger.pt"
+    },
+    "ocr_details": {
+        "lang": "en",
+        "use_angle_cls": true
+    },
+    "log_file_path": "F:\\ALPR_SOURCE_CODE\\logs\\testinglog.log",
+    "tables": {
+        "event_details": {
+            "table_name": "[dbo].[event_details]"
+        }
+    },
+    "log_level": "info",
+    "log_type": "low"
+}
