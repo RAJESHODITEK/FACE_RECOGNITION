@@ -312,47 +312,62 @@ class HomeController:
             self.obj_Interface.dict_frames["historical_event"].reset_filter_criteria()
             list_historical_events, self.obj_Interface.dict_frames[
                 "historical_event"].event_starting_date = self.obj_Core.obj_event.fetch_event_combo_details(
-                self.obj_Interface.dict_frames["historical_event"].i_end_index,
+                0,
                 self.obj_Interface.dict_frames["historical_event"].dict_filter_criteria)
             self.obj_Interface.dict_frames["historical_event"].i_total_data = self.obj_Core.obj_event.get_data_count(
                 self.obj_Interface.dict_frames["historical_event"].dict_filter_criteria)
+
             i_total_data_fetched = len(list_historical_events)
+            self.obj_Interface.dict_frames["historical_event"].i_total_data = self.obj_Core.obj_event.get_data_count(self.obj_Interface.dict_frames["historical_event"].dict_filter_criteria)
+
             if (i_total_data_fetched > 0):
-                self.obj_Interface.dict_frames["historical_event"].i_start_index = 1
+                self.obj_Interface.dict_frames["historical_event"].i_start_index = 0
                 self.obj_Interface.dict_frames["historical_event"].i_end_index += i_total_data_fetched
             self.obj_Interface.dict_frames["historical_event"].update_table(list_historical_events)
             self.obj_Interface.switch_frames("historical_event")
         elif (button_menu == self.obj_HomeInterface.button_settings):
             self.obj_Interface.switch_frames("settings")
 
-
-
     def onclick_notification_button(self):
+        print("=======================================")
+        print("Notification button clicked")
+        print("=======================================")
         self.obj_Interface.dict_frames['home'].dot_label.configure(text='')
         self.obj_HomeInterface.reset_menu_highlight()
 
+        print("Calling fetch_unrecognized_vehicles...")
         db_data_list = self.obj_Core.obj_event.fetch_unrecognized_vehicles()
+        print(f"Received {len(db_data_list) if db_data_list else 0} records from fetch_unrecognized_vehicles")
+
         # Update vehicle data in interface
         if db_data_list:
-            temp_notification_data=[]
+            print("Processing retrieved data for UI...")
+            temp_notification_data = []
             for db_data in db_data_list:
+                print(f"Processing event ID: {db_data.get('event_id')}")
                 temp_notification_data.append({
-                    "vehicle_event_id": db_data.get("event_id"),
-                    "vehicle_img": db_data.get("vehicle_img"),
-                    "number_plate_img": db_data.get("number_plate_img"),
-                    "vehicle_number": db_data.get("vehicle_number"),
-                    "number_plate_color": db_data.get("number_plate_color"),
-                    "country": db_data.get("country"),
-                    "capture_time": db_data.get("time"),
+                    "event_id": db_data.get("event_id"),
+                    "captured_img": db_data.get("captured_img"),
+                    "person_img": db_data.get("photo_path"),
+                    "person_name": db_data.get("person_name"),
+                    "age": db_data.get("person_age"),  # Note the field name change
+                    "gender": db_data.get("person_gender"),  # Note the field name change
+                    "start_time": db_data.get("start_time"),
                     "status": db_data.get("status"),
-                    "alert_type": "Blacklisted",
+                    "alert_type": "Unrecognized Person",
                     "acknowledgment_note": db_data.get("acknowledgment_message", ""),
                     "acknowledgment_time": db_data.get("acknowledgment_time")
                 })
-            self.obj_Interface.dict_frames['notification'].vehicle_data= temp_notification_data
+            print(f"Created {len(temp_notification_data)} records for UI")
+            self.obj_Interface.dict_frames['notification'].vehicle_data = temp_notification_data
+            print("Calling update_alarm_list...")
             self.obj_Interface.dict_frames['notification'].update_alarm_list()
+            print("UI update completed")
+        else:
+            print("No data to display - check database query")
 
         self.obj_Interface.switch_frames("notification")
+        print("Switched to notification frame")
 
     def onclick_menu(self) -> None:
         self.obj_HomeInterface.toggle_menu_bar()

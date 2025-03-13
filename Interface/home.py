@@ -99,9 +99,9 @@ class HomeInInterface(CTkFrame):
         )
         self.frame_rcol_brow.pack(side="top", fill="both", expand=False)
 
-        img_alpr_logo = CTkImage(Image.open(".\\Resources\\images\\alpr_logo.png"), size=(105, 32))
+        img_alpr_logo = CTkImage(Image.open("C:\\Users\\ITLP 93\\Downloads\\Group 302 (6).png"), size=(105, 32))
         self.label_alpr_logo = CTkLabel(self.frame_lcol_trow, image=img_alpr_logo, text="")
-        self.label_alpr_logo.place(relx=0.5, rely=0.5, anchor="center")
+        self.label_alpr_logo.place(relx=0.47, rely=0.5, anchor="center")
 
         self.button_live_event = self.create_menu_buttons(self.frame_lcol_mrow,
                                                           ".\\Resources\\images\\live_event_icon.png", "Live Event",
@@ -301,7 +301,7 @@ class HomeInInterface(CTkFrame):
         self.label_alpr_heading = CTkLabel(
             self.frame_rcol_trow,
             height=i_trow_height,
-            text="Automatic Face Recognition",
+            text="      Face Recognition",
             text_color="#2C2C2C",
             font=("Segoe UI", 22, "bold")
         )

@@ -7,7 +7,7 @@ from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkButton, CTkCanvas, CT
     CTkToplevel, CTkFont
 from tkinter import StringVar, Spinbox
 from tkcalendar import Calendar
-from PIL import Image, ImageTk, ImageOps, ImageEnhance
+from PIL import Image, ImageTk, ImageOps, ImageEnhance, ImageDraw, ImageFont
 import datetime
 
 
@@ -30,7 +30,8 @@ class HistoricalEventInterface(CTkFrame):
         self.add_vehicle_button= None
         self.configure(fg_color="#F1F5FA", corner_radius=0)
 
-        self.image_references = []  # List to store image references
+
+        self.image_references = []
 
         self.i_start_index = 0
         self.i_end_index = 0
@@ -38,7 +39,7 @@ class HistoricalEventInterface(CTkFrame):
         self.dict_filter_criteria = {
             "str_start_timeperiod": "",
             "str_end_timeperiod": "",
-            "str_vehicle_number": "%"
+            "str_person_name": ""
         }
         self.i_row_index = 1
 
@@ -78,71 +79,71 @@ class HistoricalEventInterface(CTkFrame):
         )
         self.label_heading.grid(row=0, column=0, padx=10, pady=(15, 0), sticky="ew")
 
-        self.label_Balance_count = CTkLabel(
-            self.frame_header,
-            text="Parked:",
-            text_color="#2C2C2C",
-            font=("", 16, "bold"),
-            corner_radius=5,
-            anchor="w",
-            fg_color="transparent"
-        )
-        self.label_Balance_count.grid(row=0, column=2, padx=10, pady=(15, 0), sticky="ew")
-
-        self.label_Balance_count_value = CTkLabel(
-            self.label_Balance_count,
-            text="0",
-            text_color="White",
-            font=("", 16, "bold"),
-            corner_radius=5,
-            anchor="w",
-            fg_color="orange"
-        )
-        self.label_Balance_count_value.grid(row=0, column=2, padx=0, pady=(0, 0), sticky="nsew")
-
-        self.label_Entry_count = CTkLabel(
-            self.frame_header,
-            text="Entry:",
-            text_color="#2C2C2C",
-            font=("", 16, "bold"),
-            corner_radius=5,
-            anchor="w",
-            fg_color="transparent"
-        )
-        self.label_Entry_count.grid(row=0, column=3, padx=10, pady=(15, 0), sticky="ew")
-
-        self.label_Entry_count_value = CTkLabel(
-            self.label_Entry_count,
-            text="0",
-            text_color="White",
-            font=("", 16, "bold"),
-            corner_radius=5,
-            anchor="w",
-            fg_color="green"
-        )
-        self.label_Entry_count_value.grid(row=0, column=2, padx=0, pady=(0, 0), sticky="nsew")
-
-        self.label_Exit_count = CTkLabel(
-            self.frame_header,
-            text="Exit:",
-            text_color="#2C2C2C",
-            font=("", 16, "bold"),
-            corner_radius=5,
-            anchor="w",
-            fg_color="transparent"
-        )
-        self.label_Exit_count.grid(row=0, column=4, padx=10, pady=(15, 0), sticky="ew")
-
-        self.label_Exit_count_value = CTkLabel(
-            self.label_Exit_count,
-            text="0",
-            text_color="White",
-            font=("", 16, "bold"),
-            corner_radius=5,
-            anchor="w",
-            fg_color="red"
-        )
-        self.label_Exit_count_value.grid(row=0, column=2, padx=0, pady=(0, 0), sticky="nsew")
+        # self.label_Balance_count = CTkLabel(
+        #     self.frame_header,
+        #     #text="Parked:",
+        #     text_color="#2C2C2C",
+        #     font=("", 16, "bold"),
+        #     corner_radius=5,
+        #     anchor="w",
+        #     fg_color="transparent"
+        # )
+        # self.label_Balance_count.grid(row=0, column=2, padx=10, pady=(15, 0), sticky="ew")
+        #
+        # self.label_Balance_count_value = CTkLabel(
+        #     self.label_Balance_count,
+        #     text="0",
+        #     text_color="White",
+        #     font=("", 16, "bold"),
+        #     corner_radius=5,
+        #     anchor="w",
+        #     fg_color="orange"
+        # )
+        # self.label_Balance_count_value.grid(row=0, column=2, padx=0, pady=(0, 0), sticky="nsew")
+        #
+        # self.label_Entry_count = CTkLabel(
+        #     self.frame_header,
+        #     text="Entry:",
+        #     text_color="#2C2C2C",
+        #     font=("", 16, "bold"),
+        #     corner_radius=5,
+        #     anchor="w",
+        #     fg_color="transparent"
+        # )
+        # self.label_Entry_count.grid(row=0, column=3, padx=10, pady=(15, 0), sticky="ew")
+        #
+        # self.label_Entry_count_value = CTkLabel(
+        #     self.label_Entry_count,
+        #     text="0",
+        #     text_color="White",
+        #     font=("", 16, "bold"),
+        #     corner_radius=5,
+        #     anchor="w",
+        #     fg_color="green"
+        # )
+        # self.label_Entry_count_value.grid(row=0, column=2, padx=0, pady=(0, 0), sticky="nsew")
+        #
+        # self.label_Exit_count = CTkLabel(
+        #     self.frame_header,
+        #     text="Exit:",
+        #     text_color="#2C2C2C",
+        #     font=("", 16, "bold"),
+        #     corner_radius=5,
+        #     anchor="w",
+        #     fg_color="transparent"
+        # )
+        # self.label_Exit_count.grid(row=0, column=4, padx=10, pady=(15, 0), sticky="ew")
+        #
+        # self.label_Exit_count_value = CTkLabel(
+        #     self.label_Exit_count,
+        #     text="0",
+        #     text_color="White",
+        #     font=("", 16, "bold"),
+        #     corner_radius=5,
+        #     anchor="w",
+        #     fg_color="red"
+        # )
+        # self.label_Exit_count_value.grid(row=0, column=2, padx=0, pady=(0, 0), sticky="nsew")
 
         self.button_filter = CTkButton(
             self.frame_header,
@@ -156,7 +157,6 @@ class HistoricalEventInterface(CTkFrame):
             font=("", 14),
             cursor="hand2",
             anchor="center",
-            #hover=False,
             hover_color="#313A46"
 
         )
@@ -607,23 +607,18 @@ class HistoricalEventInterface(CTkFrame):
 
     def convert_rgb_to_bgr(self, image_param):
         try:
-            # Handle different types of image inputs
             if isinstance(image_param, Image.Image):
                 image = image_param
             elif isinstance(image_param, CTkImage):
-                # Access the _light_image attribute to get the underlying PIL image
                 image = image_param._light_image
             elif isinstance(image_param, str):
-                # Check if it's base64 encoded
                 if image_param.startswith(('data:image', 'iVBOR', '/9j/')):
-                    # Likely a base64 string
                     try:
                         image_data = base64.b64decode(image_param)
                         image = Image.open(BytesIO(image_data))
                     except Exception as e:
                         print(f"Error decoding base64 image: {e}")
                         return Image.new('RGB', (230, 185), color=(200, 200, 200))
-                # Check if it's a file path
                 elif os.path.exists(image_param):
                     image = Image.open(image_param)
                 else:
@@ -633,7 +628,6 @@ class HistoricalEventInterface(CTkFrame):
                 print(f"Unsupported image type: {type(image_param)}")
                 return Image.new('RGB', (230, 185), color=(200, 200, 200))
 
-            # Ensure the image is in RGB mode
             if image.mode != "RGB":
                 image = image.convert("RGB")
 
@@ -641,20 +635,22 @@ class HistoricalEventInterface(CTkFrame):
 
         except Exception as e:
             print(f"Error processing image: {e}")
-            # Return a placeholder image when errors occur
             return Image.new('RGB', (230, 185), color=(200, 200, 200))
 
     def on_page_change(self):
-        if self.i_total_data == 0:
+        if int(self.i_total_data) == 0:
             self.label_data_count.configure(
                 text="No Records Found!",
                 text_color="#FF0000"
             )
         else:
+            self.i_end_index = min(self.i_start_index + 5, self.i_total_data)
             self.label_data_count.configure(
-                text=f"Showing {self.i_start_index} - {self.i_end_index} of {self.i_total_data} entries",
+                text=f"Showing {self.i_start_index + 1} - {self.i_end_index} of {self.i_total_data} entries",
                 text_color="#2c2c2c"
             )
+
+
 
         enabled_color = "#374151"
         enabled_hover = "#1F2937"
@@ -684,11 +680,10 @@ class HistoricalEventInterface(CTkFrame):
 
     def update_table(self, list_historical_events: list):
         event_details = None
-        # Clear existing table content
         for child in self.frame_table.winfo_children():
             child.destroy()
 
-        # Define premium color scheme with consistent row color
+        # Define color scheme with consistent row color
         COLORS = {
             "primary": "#2563EB",  # Royal blue
             "primary_dark": "#1E40AF",  # Deep blue
@@ -704,7 +699,6 @@ class HistoricalEventInterface(CTkFrame):
             "border": "#E2E8F0"  # Light border color
         }
 
-        # Status configuration with premium styling - Updated border colors
         status_config = {
             0: {
                 "border_color": COLORS["warning"],  # Orange for Unknown
@@ -725,8 +719,6 @@ class HistoricalEventInterface(CTkFrame):
                 "icon": "⛔"
             }
         }
-
-        # Create stylish glass-morphism header
         header_frame = CTkFrame(
             self.frame_table,
             fg_color="#232E51",
@@ -739,7 +731,7 @@ class HistoricalEventInterface(CTkFrame):
         # Create separate header labels that you can position individually
         header_1 = CTkLabel(
             header_frame,
-            #text="📸 Captured Image",
+            # text="📸 Captured Image",
             text="Captured Image",
             font=CTkFont(family="Helvetica", size=16, weight="bold"),
             text_color="white",
@@ -748,7 +740,7 @@ class HistoricalEventInterface(CTkFrame):
 
         header_2 = CTkLabel(
             header_frame,
-            #text="🪪 Identity Details",
+            # text="🪪 Identity Details",
             text="Identity Details",
             font=CTkFont(family="Helvetica", size=16, weight="bold"),
             text_color="white",
@@ -757,7 +749,7 @@ class HistoricalEventInterface(CTkFrame):
 
         header_3 = CTkLabel(
             header_frame,
-            #text="📊 Activity Timeline",
+            # text="📊 Activity Timeline",
             text="Activity Timeline",
             font=CTkFont(family="Helvetica", size=16, weight="bold"),
             text_color="white",
@@ -766,7 +758,7 @@ class HistoricalEventInterface(CTkFrame):
 
         header_4 = CTkLabel(
             header_frame,
-            #text="👤 Actual Image",
+            # text="👤 Actual Image",
             text="Actual Image",
             font=CTkFont(family="Helvetica", size=16, weight="bold"),
             text_color="white",
@@ -775,41 +767,69 @@ class HistoricalEventInterface(CTkFrame):
 
         # Now you can place these headers manually using place() instead of grid or pack
         # These are example placements - adjust x and y coordinates as needed
-        header_1.place(relx=0.1, rely=0.5, anchor="center")
-        header_2.place(relx=0.29, rely=0.5, anchor="center")
-        header_3.place(relx=0.58, rely=0.5, anchor="center")
-        header_4.place(relx=0.875, rely=0.5, anchor="center")
+        header_1.place(relx=0.08, rely=0.5, anchor="center")
+        header_2.place(relx=0.27, rely=0.5, anchor="center")
+        header_3.place(relx=0.56, rely=0.5, anchor="center")
+        header_4.place(relx=0.871, rely=0.5, anchor="center")
 
         # Add elegant spacing
-        spacer = CTkFrame(self.frame_table, height=5, fg_color="transparent")
+        spacer = CTkFrame(self.frame_table, height=3, fg_color="transparent")
         spacer.grid(row=1, column=0)
 
+        try:
+            logo_img = Image.open("Resources\\images\\prop.jpg")
+        except (FileNotFoundError, IOError):
+            logo_img = Image.new("RGB", (500, 500), color="#F0F0F0")
+            draw = ImageDraw.Draw(logo_img)
+            draw.rectangle([50, 40, 300, 300], fill="#2563EB")  # Draw a blue rectangle as a simple logo
+            try:
+                font = ImageFont.truetype("arial.ttf", 24)
+            except IOError:
+                font = ImageFont.load_default()
+            draw.text((100, 75), "LOGO", fill="white", font=font, anchor="mm")
+
+        logo_img = logo_img.resize((300, 300), Image.Resampling.LANCZOS)
+        self.i_row_index=self.i_start_index +1
         for row_index, row_data in enumerate(list_historical_events):
-            # Use consistent color for all rows
             row_bg_color = COLORS["card"]
+
 
             event_details = row_data
 
-            # Convert and process images
-            bgr_image_of_person = self.convert_rgb_to_bgr(row_data["photo_path"])
-            bgr_image_of_captured = self.convert_rgb_to_bgr(row_data["captured_img"])
-
-            # Set identical image dimensions for both images
             image_width, image_height = 230, 185
 
-            # Resize with high-quality resampling
+            bgr_image_of_person = Image.new("RGB", (image_width, image_height),
+                                            color="#F0F0F0")  # Light gray background
+            if row_data.get("photo_path"):
+                bgr_image_of_person = self.convert_rgb_to_bgr(row_data["photo_path"])
+            else:
+                # Create placeholder with logo instead of text
+                bgr_image_of_person = Image.new("RGB", (image_width, image_height), color="#F0F0F0")
+                # Calculate position to center the logo
+                paste_x = (image_width - logo_img.width) // 2
+                paste_y = (image_height - logo_img.height) // 2
+                bgr_image_of_person.paste(logo_img, (paste_x, paste_y))
 
-            # Apply image enhancements for person image
+            # Handle captured image
+            bgr_image_of_captured = Image.new("RGB", (image_width, image_height),
+                                              color="#F0F0F0")  # Light gray background
+            if row_data.get("captured_img"):
+                bgr_image_of_captured = self.convert_rgb_to_bgr(row_data["captured_img"])
+            else:
+                bgr_image_of_captured = Image.new("RGB", (image_width, image_height), color="#F0F0F0")
+                paste_x = (image_width - logo_img.width) // 2
+                paste_y = (image_height - logo_img.height) // 2
+                bgr_image_of_captured.paste(logo_img, (paste_x, paste_y))
+
+            # Resize and enhance images
             person_img_pil = bgr_image_of_person.resize(
                 (image_width, image_height),
                 Image.Resampling.LANCZOS
             )
-            # Add premium image enhancements
             person_img_pil = ImageOps.autocontrast(person_img_pil, cutoff=0.5)
             person_img_pil = ImageEnhance.Sharpness(person_img_pil).enhance(1.5)
             person_img_pil = ImageEnhance.Contrast(person_img_pil).enhance(1.2)
 
-            # Apply image enhancements for captured image
             captured_img_pil = bgr_image_of_captured.resize(
                 (image_width, image_height),
                 Image.Resampling.LANCZOS
@@ -822,7 +842,6 @@ class HistoricalEventInterface(CTkFrame):
             person_img = ImageTk.PhotoImage(person_img_pil)
             captured_img = ImageTk.PhotoImage(captured_img_pil)
 
-            # Apply premium card-like frame with subtle shadow and border
             frame_row = CTkFrame(
                 self.frame_table,
                 height=220,
@@ -837,30 +856,28 @@ class HistoricalEventInterface(CTkFrame):
             frame_row.grid_propagate(False)
             frame_row.grid(row=row_index + 2, column=0, sticky="nsew", padx=20, pady=12)
 
-            # Get current status
             status = row_data.get("status", "0")
             alarm_value = 0
-            if status == 'white-list':
+            if status == 'WhiteList' or status == 'white-list' :
                 alarm_value = 1  # Verified (green)
-            elif status == 'black-list':
+            elif status == 'BlackList':
                 alarm_value = 2  # Restricted (red)
             # else stays 0 (Unknown - orange)
 
-            # SWAPPED: Now showing captured image in first column
-            # Apply status-specific border color to captured image container
+            print(f"Status from DB: '{row_data.get('status')}' for person: {row_data.get('person_name')}")
+
             img_frame = CTkFrame(
                 frame_row,
                 corner_radius=15,
                 fg_color=COLORS["accent"],
-                border_width=2,  # Increased border width for better visibility
-                border_color=status_config[alarm_value]["border_color"]  # Status-specific border color
+                border_width=2,
+                border_color=status_config[alarm_value]["border_color"]
             )
             img_frame.grid(row=0, column=0, sticky="w", padx=20, pady=15)
 
-            # Create stylish label for captured image (previously for person image)
             label_imge = CTkLabel(
                 img_frame,
-                image=captured_img,  # SWAPPED: Using captured_img instead of person_img
+                image=captured_img,
                 text="",
                 height=image_height,
                 width=image_width,
@@ -869,7 +886,6 @@ class HistoricalEventInterface(CTkFrame):
             )
             label_imge.pack(padx=5, pady=5)
 
-            # Add stylish floating badge with serial number
             serial_badge = CTkFrame(
                 img_frame,
                 fg_color="#232E51",
@@ -887,7 +903,24 @@ class HistoricalEventInterface(CTkFrame):
                 text_color="white"
             ).pack(padx=8, pady=3)
 
-            # Details frame with modern styling
+            # serial_badge = CTkFrame(
+            #     img_frame,
+            #     fg_color="#232E51",
+            #     corner_radius=12,
+            #     height=24,  # Reduced height
+            #     width=45  # Reduced width
+            # )
+            # serial_badge.place(x=10, y=10)
+            #
+            # CTkLabel(
+            #     serial_badge,
+            #     fg_color="#232E51",
+            #     text=f"#{self.i_row_index}",
+            #     font=CTkFont(family="Helvetica", size=12, weight="bold"),  # Reduced font size
+            #     text_color="white",
+            #     height=20
+            # ).pack(padx=6, pady=2)
+
             frame_details = CTkFrame(
                 frame_row,
                 height=190,
@@ -898,7 +931,6 @@ class HistoricalEventInterface(CTkFrame):
             frame_details.columnconfigure(0, weight=1)
             frame_details.grid(row=0, column=1, padx=15, pady=15, sticky="nsew")
 
-            # Section title with modern styling
             section_title = CTkFrame(
                 frame_details,
                 fg_color="#232E51",
@@ -914,7 +946,6 @@ class HistoricalEventInterface(CTkFrame):
                 text_color="white"
             ).pack(padx=10, pady=4)
 
-            # Map status values to Person Type
             status_types = {
                 0: "Unknown",
                 1: "Verified",
@@ -922,7 +953,6 @@ class HistoricalEventInterface(CTkFrame):
             }
             person_type = status_types.get(alarm_value, "Unknown")
 
-            # Format timestamps with elegant styling
             from datetime import datetime
 
             def format_timestamp(timestamp_value):
@@ -939,7 +969,6 @@ class HistoricalEventInterface(CTkFrame):
             start_time_formatted = format_timestamp(row_data.get("start_time"))
             end_time_formatted = format_timestamp(row_data.get("end_time"))
 
-            # Modern field mappings with icons
             field_mappings = {
                 "person_name": {"title": "Person Name", "value": row_data.get("person_name", ""), "icon": "👤"},
                 "age": {"title": "Age", "value": row_data.get("person_age", ""), "icon": "🔢"},
@@ -998,7 +1027,7 @@ class HistoricalEventInterface(CTkFrame):
                         text_color="white",
                         fg_color=status_config[alarm_value]["border_color"],
                         corner_radius=4,
-                        width=200,
+                        width=150,
                         height=26
                     )
                     status_label.pack(side="left", padx=1)
@@ -1011,7 +1040,7 @@ class HistoricalEventInterface(CTkFrame):
                         anchor="w"
                     ).pack(side="left", padx=5)
 
-            # Timeline frame with elegant styling
+            # Timeline frame
             frame_additional_details = CTkFrame(
                 frame_row,
                 height=190,
@@ -1022,7 +1051,7 @@ class HistoricalEventInterface(CTkFrame):
             frame_additional_details.grid(row=0, column=2, sticky="nsew", padx=15, pady=15)
             frame_additional_details.grid_propagate(False)
 
-            # Create stylish timeline container
+            #Time Line Container
             timeline_container = CTkFrame(
                 frame_additional_details,
                 fg_color=COLORS["accent"],
@@ -1075,7 +1104,7 @@ class HistoricalEventInterface(CTkFrame):
                 anchor="w"
             ).pack(side="top", anchor="w")
 
-            # Add connector line
+            # connector line between first seen and last seen
             line_frame = CTkFrame(
                 timeline_container,
                 width=2,
@@ -1129,7 +1158,6 @@ class HistoricalEventInterface(CTkFrame):
             person_name_current = row_data.get("person_name", "")
             eventType = alarm_value
 
-            # SWAPPED: Now showing person image in the final column with a simple border
             plate_container = CTkFrame(
                 frame_row,
                 fg_color="white",
@@ -1137,15 +1165,14 @@ class HistoricalEventInterface(CTkFrame):
                 height=image_height + 20,
                 corner_radius=18,
                 border_width=2,
-                border_color=COLORS["border"]  # Using standard border color for person image
+                border_color=COLORS["border"]
             )
             plate_container.grid(row=0, column=3, sticky="e", padx=20, pady=15)
             plate_container.grid_propagate(False)
 
-            # Create enhanced image label - SWAPPED to show person_img
             self.label_imge = CTkLabel(
                 plate_container,
-                image=person_img,  # SWAPPED: Using person_img instead of captured_img
+                image=person_img,
                 text="",
                 height=image_height,
                 width=image_width,
@@ -1155,7 +1182,6 @@ class HistoricalEventInterface(CTkFrame):
             )
             self.label_imge.pack(padx=8, pady=8, expand=True)
 
-            # Add modern view button
             view_button = CTkButton(
                 plate_container,
                 text="View Details",
@@ -1175,7 +1201,6 @@ class HistoricalEventInterface(CTkFrame):
             )
             view_button.pack(pady=8)
 
-            # Add click event
             self.label_imge.bind("<Button-1>",
                                  partial(self.on_row_click,
                                          event_id_current=event_id_current,
@@ -1217,7 +1242,6 @@ class HistoricalEventInterface(CTkFrame):
                 font=CTkFont(family="Helvetica", size=14),
                 text_color=COLORS["text_secondary"]
             ).pack()
-
     def create_acknowledgment_frame(self, event_data=None, vehicle_data=None, person_image=None,
                                     captured_image=None, data=None, eventType: int = None):
         # First, properly cleanup any existing window
@@ -1230,7 +1254,6 @@ class HistoricalEventInterface(CTkFrame):
             1: {"type": "Verified", "heading": "Authorized Person Details", "color": "#4CAF50", "icon": "✅"},
             # Green for authorized
             2: {"type": "Restricted", "heading": "Restricted Person Details", "color": "#F44336", "icon": "🚫"}
-            # Red for restricted
         }
 
         event_info = event_type_map.get(eventType, {"type": "Unknown", "heading": "Un-Registered Person Details",
@@ -1692,6 +1715,7 @@ class HistoricalEventInterface(CTkFrame):
                     text=item["icon"],
                     font=("Inter", 12),
                     width=25,
+                    text_color="#FFFFFF",
                     anchor="w"
                 ).pack(side="left", padx=(8, 0))
 
@@ -1713,10 +1737,11 @@ class HistoricalEventInterface(CTkFrame):
                     text_color="white",
                     fg_color=status_color,
                     corner_radius=4,
-                    width=100,
+                    width=80,
                     height=22
                 )
                 status_value_label.pack(side="left", padx=(5, 0))
+
             else:
                 CTkLabel(
                     row_frame,
@@ -2019,8 +2044,8 @@ class HistoricalEventInterface(CTkFrame):
         tooltip.configure(bg="#555555")
 
         def show_tooltip(event):
-            x = widget.winfo_rootx() + widget.winfo_width() - 180
-            y = widget.winfo_rooty() + (widget.winfo_height() // 2) + 20
+            x = widget.winfo_rootx() + widget.winfo_width() - 200
+            y = widget.winfo_rooty() + (widget.winfo_height() // 2) + 10
 
             tooltip.geometry(f"+{x}+{y}")
             tooltip.deiconify()

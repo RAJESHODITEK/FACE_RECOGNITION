@@ -1,3 +1,4 @@
+import base64
 import datetime
 import re
 from Core.main import Core
@@ -20,14 +21,14 @@ class VehicleListController:
 
         self.obj_VehicleListInterface.entry_search.bind("<KeyRelease>", self.search_vehicle)
         self.obj_VehicleListInterface.entry_selected_owner.bind("<KeyRelease>", self.search_owner)
+
         self.obj_VehicleListInterface.entry_selected_type.bind("<KeyRelease>", self.search_type)
-        self.obj_VehicleListInterface.entry_selected_color.bind("<KeyRelease>", self.search_color)
+        # self.obj_VehicleListInterface.entry_selected_color.bind("<KeyRelease>", self.search_color)
         self.obj_VehicleListInterface.entry_selected_owner.bind("<Button-1>",
                                                                 self.obj_VehicleListInterface.close_filter_dropdown)
         self.obj_VehicleListInterface.entry_selected_type.bind("<Button-1>",
                                                                self.obj_VehicleListInterface.close_filter_dropdown)
-        self.obj_VehicleListInterface.entry_selected_color.bind("<Button-1>",
-                                                                self.obj_VehicleListInterface.close_filter_dropdown)
+        # self.obj_VehicleListInterface.entry_selected_color.bind("<Button-1>", self.obj_VehicleListInterface.close_filter_dropdown)
 
         self.obj_VehicleListInterface.on_form_add_ready = self.bind_add_popup_buttons
         self.obj_VehicleListInterface.on_form_edit_ready = self.bind_edit_popup_buttons
@@ -36,7 +37,7 @@ class VehicleListController:
         self.obj_VehicleListInterface.button_filter.configure(command=self.filter_popup)
         self.obj_VehicleListInterface.button_select_owner.configure(command=self.popup_owner_dropdown)
         self.obj_VehicleListInterface.button_select_type.configure(command=self.popup_type_dropdown)
-        self.obj_VehicleListInterface.button_select_color.configure(command=self.popup_color_dropdown)
+        # self.obj_VehicleListInterface.button_select_color.configure(command=self.popup_color_dropdown)
         self.obj_VehicleListInterface.button_ok.configure(command=self.onclick_ok)
         self.obj_VehicleListInterface.button_cancel.configure(command=self.onclick_cancel)
 
@@ -52,60 +53,57 @@ class VehicleListController:
             value[0].configure(command=lambda k=key: self.onclick_column_headings(k))
 
     def bind_add_popup_buttons(self):
+
         self.obj_VehicleListInterface.button_add_save.configure(command=self.onclick_add_save)
         self.obj_VehicleListInterface.button_cancel.configure(command=self.onclick_Add_cancel)
-        self.obj_VehicleListInterface.entry_number.bind("<KeyRelease>", self.validate_number)
-        self.obj_VehicleListInterface.entry_model.bind("<KeyRelease>", self.validate_model)
-        self.obj_VehicleListInterface.entry_color.bind("<KeyRelease>", self.validate_colour)
-        self.obj_VehicleListInterface.entry_owner.bind("<KeyRelease>", self.validate_owner)
-        self.obj_VehicleListInterface.entry_date.bind("<KeyRelease>", self.validate_manufacturing_year)
+        # self.obj_VehicleListInterface.entry_number.bind("<KeyRelease>", self.validate_number)
+        # self.obj_VehicleListInterface.entry_model.bind("<KeyRelease>", self.validate_model)
+        # self.obj_VehicleListInterface.entry_color.bind("<KeyRelease>", self.validate_colour)
+        # self.obj_VehicleListInterface.entry_owner.bind("<KeyRelease>", self.validate_owner)
+        # self.obj_VehicleListInterface.entry_date.bind("<KeyRelease>", self.validate_manufacturing_year)
         # self.obj_VehicleListInterface.entry_selected_company.bind("<KeyRelease>", self.validate_)
 
-        self.obj_VehicleListInterface.entry_type.bind("<KeyRelease>",
-                                                      lambda e: self.search_Add_type_new(
-                                                          self.obj_VehicleListInterface.entry_type, 4, 3,
-                                                          self.obj_VehicleListInterface,
-                                                          self.obj_VehicleListInterface.frame_form_rcol, 0
-                                                          ))
-        self.obj_VehicleListInterface.entry_selected_company.bind("<KeyRelease>",
-                                                                  lambda e: self.search_Add_type_new(
-                                                                      self.obj_VehicleListInterface.entry_selected_company,
-                                                                      4, 3, self.obj_VehicleListInterface,
-                                                                      self.obj_VehicleListInterface.frame_form_lcol, 1
-                                                                      ))
+        # self.obj_VehicleListInterface.entry_selected_status.bind("<KeyRelease>",
+        #                            lambda e: self.obj_VehicleListInterface.button_select_gender)
+
+        self.obj_VehicleListInterface.entry_selected_status.bind("<KeyRelease>",
+                                                                 lambda e: self.search_Add_type_new(
+                                                                     self.obj_VehicleListInterface.entry_selected_status,
+                                                                     4, 3, self.obj_VehicleListInterface,
+                                                                     self.obj_VehicleListInterface.frame_form_rcol, 0
+                                                                     ))
+        # self.obj_VehicleListInterface.entry_selected_company.bind("<KeyRelease>",
+        #                            lambda e: self.search_Add_type_new(self.obj_VehicleListInterface.entry_selected_company,4,3, self.obj_VehicleListInterface,self.obj_VehicleListInterface.frame_form_lcol,1
+        #
+        #                                                                                     ))
 
     def search_Add_type_new(self, entryfield, row=0, rowspan=2, interface_obj=None, parent=None, fun=0, event=None):
-        self.list_company = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan"]
-        self.list_vehicl_type = ["Personal", "Truck", "Motorcycle", "Bus", "Van", "Auto", "Taxi"]
+        print("search entries)))))))))))))))))))))) ")
+        # self.list_company = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan"]
+        # self.list_vehicl_type = ["Personal", "Truck", "Motorcycle", "Bus", "Van", "Auto", "Taxi"]
 
-        text_entered = entryfield.get().lstrip(" ")
-        text_entered = text_entered
-        dict_status = []
-        if fun == 0:
-            dict_status = self.obj_core.obj_Vehicle.search_vehicle_type(text_entered)
-            if len(dict_status) == 1 and dict_status[0] == text_entered and dict_status[0] != 'All':
-                entryfield.configure(border_color="green")
-                self.obj_VehicleListInterface.label_error.configure(text="")
-            else:
-                self.obj_VehicleListInterface.label_error.configure(
-                    text="Vehcile Type should be selected from the dropdown")
-                entryfield.configure(border_color="red")
+        # text_entered = entryfield.get().lstrip(" ")
+        # text_entered = text_entered
+        # dict_status=[]
+        # if fun==0:
+        #     dict_status = self.obj_core.obj_Vehicle.search_vehicle_type(text_entered)
+        #     if len(dict_status)==1 and dict_status[0]==text_entered and dict_status[0]!='All':
+        #         entryfield.configure(border_color="green")
+        #         self.obj_VehicleListInterface.label_error.configure(text="")
+        #     else:
+        #         self.obj_VehicleListInterface.label_error.configure(text="Vehcile Type should be selected from the dropdown")
+        #         entryfield.configure(border_color="red")
 
+        # elif fun ==1:
+        #      dict_status = self.obj_core.obj_Vehicle.search_vehicle_company(text_entered)
+        #      if len(dict_status)==1 and dict_status[0]==text_entered and dict_status[0]!='All':
+        #         self.obj_VehicleListInterface.label_error.configure(text="")
+        #         entryfield.configure(border_color="green")
+        #      else:
+        #         self.obj_VehicleListInterface.label_error.configure(text="Selected from the dropdown")
+        #         entryfield.configure(border_color="red")
 
-
-
-        elif fun == 1:
-            dict_status = self.obj_core.obj_Vehicle.search_vehicle_company(text_entered)
-            if len(dict_status) == 1 and dict_status[0] == text_entered and dict_status[0] != 'All':
-                self.obj_VehicleListInterface.label_error.configure(text="")
-                entryfield.configure(border_color="green")
-            else:
-                self.obj_VehicleListInterface.label_error.configure(
-                    text="Vehcile Company should be selected from the dropdown")
-                entryfield.configure(border_color="red")
-
-        interface_obj.popup_Add_dropdown(parent, dict_status, entry_destination=entryfield, i_row=row,
-                                         i_rowspan=rowspan, type=0)
+        # interface_obj.popup_Add_dropdown(parent,dict_status, entry_destination = entryfield, i_row = row, i_rowspan=rowspan,type=0)
 
     # ----------------------------------------------------------[validation add page]-------------------------------------------------------------------------------------
 
@@ -270,32 +268,26 @@ class VehicleListController:
             self.obj_VehicleListInterface.entry_type.configure(border_color="green")
 
     def validate_vehicle_type(self, type):
-        return type in ["white-list", "black-list"]
+        return type in ["WhiteList", "BlackList"]
 
     # ----------------------------------------------------------[validiation add ends]----------------------------------------------------------------------------------------------------
 
     def bind_edit_popup_buttons(self):
         #  self.obj_VehicleListInterface.entry_edit_selected_status.bind("<KeyRelease>", self.search_edit_status)
-        self.obj_VehicleListInterface.button_edit_save.configure(command=self.onclick_edit_save)
-        #  self.obj_VehicleListInterface.entry_Edit_number.bind("<KeyRelease>", self.validate_edit_number)
-        self.obj_VehicleListInterface.entry_edit_model.bind("<KeyRelease>", self.validate_edit_model)
-        self.obj_VehicleListInterface.entry_edit_color.bind("<KeyRelease>", self.validate_edit_colour)
-        self.obj_VehicleListInterface.entry_edit_owner.bind("<KeyRelease>", self.validate_edit_owner)
-        self.obj_VehicleListInterface.entry_edit_date.bind("<KeyRelease>", self.validate_edit_manufacturing_year)
+        self.obj_VehicleListInterface.Edit_button_add_save.configure(command=self.onclick_edit_save)
 
-        self.obj_VehicleListInterface.entry_edit_type.bind("<KeyRelease>",
-                                                           lambda e: self.search_Edit_type_new(
-                                                               self.obj_VehicleListInterface.entry_edit_type, 4, 3,
-                                                               self.obj_VehicleListInterface,
-                                                               self.obj_VehicleListInterface.frame_form_rcol, 0
-                                                               ))
-        self.obj_VehicleListInterface.entry_edit_selected_company.bind("<KeyRelease>",
-                                                                       lambda e: self.search_Edit_type_new(
-                                                                           self.obj_VehicleListInterface.entry_edit_selected_company,
-                                                                           4, 3, self.obj_VehicleListInterface,
-                                                                           self.obj_VehicleListInterface.frame_form_lcol,
-                                                                           1
-                                                                           ))
+    #  self.obj_VehicleListInterface.entry_Edit_number.bind("<KeyRelease>", self.validate_edit_number)
+    #  self.obj_VehicleListInterface.entry_edit_model.bind("<KeyRelease>", self.validate_edit_model)
+    #  self.obj_VehicleListInterface.entry_edit_color.bind("<KeyRelease>", self.validate_edit_colour)
+    #  self.obj_VehicleListInterface.entry_edit_owner.bind("<KeyRelease>", self.validate_edit_owner)
+    #  self.obj_VehicleListInterface.entry_edit_date.bind("<KeyRelease>", self.validate_edit_manufacturing_year)
+
+    #  self.obj_VehicleListInterface.entry_edit_type.bind("<KeyRelease>",
+    #                            lambda e: self.search_Edit_type_new(self.obj_VehicleListInterface.entry_edit_type,4,3, self.obj_VehicleListInterface,self.obj_VehicleListInterface.frame_form_rcol,0
+    #                                                                                       ))
+    #  self.obj_VehicleListInterface.entry_edit_selected_company.bind("<KeyRelease>",
+    #                            lambda e: self.search_Edit_type_new(self.obj_VehicleListInterface.entry_edit_selected_company,4,3, self.obj_VehicleListInterface,self.obj_VehicleListInterface.frame_form_lcol,1
+    #   ))
 
     def validate_edit_owner(self, event=None):
         owner_name = self.obj_VehicleListInterface.entry_edit_owner.get().strip()
@@ -394,7 +386,7 @@ class VehicleListController:
             self.obj_VehicleListInterface.entry_edit_type.configure(border_color="red")
 
     def validate_vehicle_type(self, type):
-        return type in ["white-list", "black-list"]
+        return type in ["WhiteList", "BlackList"]
 
     def search_Edit_type_new(self, entryfield, row=0, rowspan=2, interface_obj=None, parent=None, fun=0, event=None):
 
@@ -441,16 +433,18 @@ class VehicleListController:
 
         # str_vehicle_number = self.obj_VehicleListInterface.entry_search.get().lstrip(" ")
         # str_vehicle_number = str_vehicle_number.upper()
-        #
+
         # list_vehicle_data = self.obj_core.obj_Vehicle.search_vehicle_number(
         #     self.obj_Interface.dict_frames["vehicle_list"].vehicle_data, str_vehicle_number)
         # self.obj_Interface.dict_frames["vehicle_list"].update_table(list_vehicle_data)
 
-        str_vehicle_number = (self.obj_VehicleListInterface.entry_search.get().lstrip(" ")).upper()
+        # str_full_name = (self.obj_VehicleListInterface.entry_search.get().lstrip(" ")).upper()
+        str_full_name = (self.obj_VehicleListInterface.entry_search.get().lstrip(" "))
         list_searched_data = []
 
-        if (str_vehicle_number != ""):
-            list_searched_data = self.obj_core.obj_Vehicle.search_vehicle_number(self.obj_VehicleListInterface.vehicle_data, str_vehicle_number)
+        if (str_full_name != ""):
+            list_searched_data = self.obj_core.obj_Vehicle.search_vehicle_number(
+                self.obj_VehicleListInterface.vehicle_data, str_full_name)
             self.obj_VehicleListInterface.i_total_data = len(list_searched_data)
         else:
             list_searched_data = self.obj_VehicleListInterface.vehicle_data
@@ -460,7 +454,7 @@ class VehicleListController:
             self.obj_VehicleListInterface.i_start_index = 1
             self.obj_VehicleListInterface.i_end_index = 5 if self.obj_VehicleListInterface.i_total_data >= 5 else self.obj_VehicleListInterface.i_total_data
 
-        self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] = str_vehicle_number
+        # self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] = str_vehicle_number
         self.obj_VehicleListInterface.update_table(list_searched_data[0:5])
 
     def search_owner(self, event):
@@ -526,17 +520,17 @@ class VehicleListController:
     def popup_owner_dropdown(self):
         if (self.obj_VehicleListInterface.bool_type_dropdown_opened):
             current_type = self.obj_VehicleListInterface.entry_selected_type.get()
-            if current_type not in ["Select Vehicle Type", "All"]:
+            if current_type not in ["Select Status", "All"]:
                 # Revert type dropdown to original state
                 self.obj_VehicleListInterface.entry_selected_type.delete(0, 'end')
-                self.obj_VehicleListInterface.entry_selected_type.insert(0, "Select Vehicle Type")
+                self.obj_VehicleListInterface.entry_selected_type.insert(0, "Select Status")
 
             # self.obj_VehicleListInterface.popup_dropdown(None)
             self.obj_VehicleListInterface.bool_type_dropdown_opened = False
         elif (self.obj_VehicleListInterface.bool_color_dropdown_opened):
             # Check if color dropdown has a value selected
             current_color = self.obj_VehicleListInterface.entry_selected_color.get()
-            if current_color not in ["Select Vehicle Color", "All"]:
+            if current_color not in ["Select ", "All"]:
                 # Revert color dropdown to original state
                 self.obj_VehicleListInterface.entry_selected_color.delete(0, 'end')
                 self.obj_VehicleListInterface.entry_selected_color.insert(0, "Select Vehicle Color")
@@ -565,17 +559,17 @@ class VehicleListController:
         if (self.obj_VehicleListInterface.bool_owner_dropdown_opened):
             # Check if owner dropdown has a value selected
             current_owner = self.obj_VehicleListInterface.entry_selected_owner.get()
-            if current_owner not in ["Select Owner Name", "All"]:
+            if current_owner not in ["Select Gender", "All"]:
                 # Revert owner dropdown to original state
                 self.obj_VehicleListInterface.entry_selected_owner.delete(0, 'end')
-                self.obj_VehicleListInterface.entry_selected_owner.insert(0, "Select Owner Name")
+                self.obj_VehicleListInterface.entry_selected_owner.insert(0, "Select Gender")
             self.obj_VehicleListInterface.close_filter_dropdown(None)
             self.obj_VehicleListInterface.popup_dropdown()
             self.obj_VehicleListInterface.bool_owner_dropdown_opened = False
         elif (self.obj_VehicleListInterface.bool_color_dropdown_opened):
             # Check if color dropdown has a value selected
             current_color = self.obj_VehicleListInterface.entry_selected_color.get()
-            if current_color not in ["Select Vehicle Color", "All"]:
+            if current_color not in ["Select Status", "All"]:
                 # Revert color dropdown to original state
                 self.obj_VehicleListInterface.entry_selected_color.delete(0, 'end')
                 self.obj_VehicleListInterface.entry_selected_color.insert(0, "Select Vehicle Color")
@@ -642,36 +636,23 @@ class VehicleListController:
 
     def onclick_ok(self):
         str_owner = self.obj_VehicleListInterface.entry_selected_owner.get().lstrip(" ")
-        self.obj_VehicleListInterface.dict_filter_criteria["str_owner"] = "%" if (str_owner == "All" or str_owner == "") else str_owner
+        self.obj_VehicleListInterface.dict_filter_criteria["gender"] = "%" if (
+                    str_owner == "All" or str_owner == "") else str_owner
 
         str_type = self.obj_VehicleListInterface.entry_selected_type.get().lstrip(" ")
-        self.obj_VehicleListInterface.dict_filter_criteria["str_type"] = "%" if (str_type == "All" or str_type == "") else str_type
-
-        str_color = self.obj_VehicleListInterface.entry_selected_color.get().lstrip(" ")
-        self.obj_VehicleListInterface.dict_filter_criteria["str_color"] = "%" if (str_color == "All" or str_color == "") else str_color
+        self.obj_VehicleListInterface.dict_filter_criteria["status"] = "%" if (
+                    str_type == "All" or str_type == "") else str_type
 
         self.obj_VehicleListInterface.reset_interface()
         self.obj_Interface.obj_RootInterface.focus_set()
-
-        # self.obj_VehicleListInterface.i_total_data = self.obj_core.obj_Vehicle.get_data_count(
-        #     self.obj_VehicleListInterface.dict_filter_criteria)
-        # self.obj_VehicleListInterface.vehicle_data = []
-        # if (self.obj_VehicleListInterface.i_total_data > 0):
-        #     self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
-        #         self.obj_VehicleListInterface.i_end_index, self.obj_VehicleListInterface.dict_filter_criteria)
-        #     i_total_data_fetched = len(self.obj_VehicleListInterface.vehicle_data)
-        #     if (i_total_data_fetched > 0):
-        #         self.obj_VehicleListInterface.i_start_index = 1
-        #         self.obj_VehicleListInterface.i_end_index += i_total_data_fetched
-        #
-        # self.obj_VehicleListInterface.update_table(self.obj_VehicleListInterface.vehicle_data)
-
         self.obj_VehicleListInterface.vehicle_data = []
-        self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(self.obj_VehicleListInterface.dict_filter_criteria)
+        self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_person_details(
+            self.obj_VehicleListInterface.dict_filter_criteria)
         self.obj_VehicleListInterface.i_total_data = len(self.obj_VehicleListInterface.vehicle_data)
         if (self.obj_VehicleListInterface.i_total_data > 0):
             self.obj_Interface.dict_frames["vehicle_list"].i_start_index = 1
-            self.obj_Interface.dict_frames["vehicle_list"].i_end_index += 5 if self.obj_VehicleListInterface.i_total_data >= 5 else self.obj_VehicleListInterface.i_total_data
+            self.obj_Interface.dict_frames[
+                "vehicle_list"].i_end_index += 5 if self.obj_VehicleListInterface.i_total_data >= 5 else self.obj_VehicleListInterface.i_total_data
 
         self.obj_VehicleListInterface.update_table((self.obj_VehicleListInterface.vehicle_data)[0:5])
 
@@ -683,70 +664,80 @@ class VehicleListController:
             self.obj_VehicleListInterface.toggle_filter_popup()
 
     def onclick_column_headings(self, str_column: str):
-        str_db_column = "vehicle_number"
+        # col_name=str_column
+        # self.obj_VehicleListInterface.sort_column(col_name)
 
-        if (str_column == "Vehicle Type"):
-            str_db_column = "vehicle_type"
-        elif (str_column == "Vehicle Color"):
-            str_db_column = "vehicle_color"
-        elif (str_column == "Owner Name"):
-            str_db_column = "vehicle_owner"
-        elif (str_column == "Manufacturing Year"):
-            str_db_column = "manufacturing_year"
+        str_db_column = "full_name"
 
-        # Find the column index in the table headers
-        column_index = self.obj_VehicleListInterface.table_headers.index(str_column)
+        if (str_column == "Age"):
+            str_db_column = "age"
+        elif (str_column == "Gender"):
+            str_db_column = "gender"
+        elif (str_column == "Status"):
+            str_db_column = "status"
 
-        # Call toggle_sort to update the UI indicators (arrows)
-        is_ascending = self.obj_VehicleListInterface.toggle_sort(column_index)
-
-        # Get the data based on any existing filter
-        data = []
-        if (self.obj_VehicleListInterface.dict_filter_criteria.get("str_vehicle_number", "") == ""):
-            data = self.obj_VehicleListInterface.vehicle_data
-        else:
-            data = self.obj_core.obj_Vehicle.search_vehicle_number(
-                self.obj_VehicleListInterface.vehicle_data,
-                self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"]
-            )
-
-        # Sort the data using the sort direction returned by toggle_sort
-        data = self.obj_core.obj_Vehicle.sort_vehicle_data(
-            data[(self.obj_VehicleListInterface.i_start_index) - 1:self.obj_VehicleListInterface.i_end_index],
+        self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.sort_vehicle_data(
+            self.obj_VehicleListInterface.vehicle_data,
             str_db_column,
-            is_ascending  # Use the value returned by toggle_sort
-        )
+            self.obj_VehicleListInterface.dict_columns_buttons[str_column][1])
 
-        # Update the table with the sorted data
-        self.obj_VehicleListInterface.update_table(data)
+        self.obj_VehicleListInterface.dict_columns_buttons[str_column][1] = not \
+        self.obj_VehicleListInterface.dict_columns_buttons[str_column][1]
 
+        self.obj_VehicleListInterface.update_table(self.obj_VehicleListInterface.vehicle_data)
 
+    # def onclick_column_headings(self, str_column: str):
+    #     print(str_column,"str__________")
+    #     # col_name=str_column
+    #     # self.obj_VehicleListInterface.sort_column(col_name)
+    #     str_db_column = "vehicle_number"
+
+    #     if (str_column == "Vehicle Type"):
+    #         str_db_column = "vehicle_type"
+    #     elif (str_column == "Vehicle Color"):
+    #         str_db_column = "vehicle_color"
+    #     elif (str_column == "Owner Name"):
+    #         str_db_column = "vehicle_owner"
+    #     elif (str_column == "Manufacturing Year"):
+    #         str_db_column = "manufacturing_year"
+
+    #     self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.sort_vehicle_data(
+    #         self.obj_VehicleListInterface.vehicle_data,
+    #         str_db_column,
+    #         self.obj_VehicleListInterface.dict_columns_buttons[str_column][1])
+
+    #     self.obj_VehicleListInterface.dict_columns_buttons[str_column][1] = not \
+    #     self.obj_VehicleListInterface.dict_columns_buttons[str_column][1]
+
+    #     self.obj_VehicleListInterface.update_table(self.obj_VehicleListInterface.vehicle_data)
 
     def onclick_next(self):
         self.obj_Interface.obj_RootInterface.focus_set()
-
         if (self.obj_VehicleListInterface.bool_filter_popup is True):
-            self.obj_VehicleListInterface.close_dropdown(None)
+            # self.obj_VehicleListInterface.close_dropdown(None)
+            # self.obj_VehicleListInterface.popup_dropdown(None)
             self.obj_VehicleListInterface.reset_filter_form()
             self.obj_VehicleListInterface.toggle_filter_popup()
 
-        # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
-        #     self.obj_VehicleListInterface.i_end_index, self.obj_VehicleListInterface.dict_filter_criteria)
+        # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(self.obj_VehicleListInterface.i_end_index, self.obj_VehicleListInterface.dict_filter_criteria)
         # i_data_count = len(self.obj_VehicleListInterface.vehicle_data)
-        # if (i_data_count > 0):
+        # if(i_data_count > 0 ):
         #     self.obj_VehicleListInterface.i_start_index = self.obj_VehicleListInterface.i_end_index + 1
         #     self.obj_VehicleListInterface.i_end_index = self.obj_VehicleListInterface.i_end_index + i_data_count
-        #
+
         #     self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
 
         data = []
         required_data = []
-        if (self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] != ""):
-            data = self.obj_core.obj_Vehicle.search_vehicle_number(self.obj_VehicleListInterface.vehicle_data,self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"])
+        if (self.obj_VehicleListInterface.dict_filter_criteria["full_name"] != ""):
+            data = self.obj_core.obj_Vehicle.search_vehicle_number(self.obj_VehicleListInterface.vehicle_data,
+                                                                   self.obj_VehicleListInterface.dict_filter_criteria[
+                                                                       "str_vehicle_number"])
         else:
             data = self.obj_VehicleListInterface.vehicle_data
 
-        required_data = data[(self.obj_VehicleListInterface.i_end_index): ((self.obj_VehicleListInterface.i_end_index) + 5)]
+        required_data = data[
+                        (self.obj_VehicleListInterface.i_end_index): ((self.obj_VehicleListInterface.i_end_index) + 5)]
         i_data_count = len(required_data)
         if (i_data_count > 0):
             self.obj_VehicleListInterface.i_start_index = self.obj_VehicleListInterface.i_end_index + 1
@@ -756,39 +747,55 @@ class VehicleListController:
 
     def onclick_previous(self):
         self.obj_Interface.obj_RootInterface.focus_set()
-
         if (self.obj_VehicleListInterface.bool_filter_popup is True):
             self.obj_VehicleListInterface.close_dropdown(None)
             self.obj_VehicleListInterface.reset_filter_form()
             self.obj_VehicleListInterface.toggle_filter_popup()
 
-        # i_start_index = self.obj_VehicleListInterface.i_start_index - 50
-        # if (i_start_index < 0):
-        #     i_start_index = 1
-        #
-        # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(i_start_index - 1,
-        #                                                                                              self.obj_VehicleListInterface.dict_filter_criteria)
-        # i_data_count = len(self.obj_VehicleListInterface.vehicle_data)
-        # if (i_data_count > 0):
-        #     self.obj_VehicleListInterface.i_start_index = i_start_index
-        #     self.obj_VehicleListInterface.i_end_index = (i_start_index + i_data_count) - 1
-        #
-        #     self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
-
         data = []
         required_data = []
-        if (self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] != ""):
-            data = self.obj_core.obj_Vehicle.search_vehicle_number(self.obj_VehicleListInterface.vehicle_data,self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"])
+        if (self.obj_VehicleListInterface.dict_filter_criteria["full_name"] != ""):
+            data = self.obj_core.obj_Vehicle.search_vehicle_number(self.obj_VehicleListInterface.vehicle_data,
+                                                                   self.obj_VehicleListInterface.dict_filter_criteria[
+                                                                       "full_name"])
         else:
             data = self.obj_VehicleListInterface.vehicle_data
 
-        required_data = data[((self.obj_VehicleListInterface.i_start_index) - 6): ((self.obj_VehicleListInterface.i_start_index) - 1)]
+        required_data = data[((self.obj_VehicleListInterface.i_start_index) - 6): (
+                    (self.obj_VehicleListInterface.i_start_index) - 1)]
         i_data_count = len(required_data)
         if (i_data_count > 0):
             self.obj_VehicleListInterface.i_end_index = (self.obj_VehicleListInterface.i_start_index) - 1
             self.obj_VehicleListInterface.i_start_index = (self.obj_VehicleListInterface.i_start_index) - 5
 
         self.obj_VehicleListInterface.update_table(required_data)
+
+        # i_start_index = self.obj_VehicleListInterface.i_start_index - 50
+        # if(i_start_index < 0):
+        #     i_start_index = 1
+
+        # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(i_start_index-1, self.obj_VehicleListInterface.dict_filter_criteria)
+        # i_data_count = len(self.obj_VehicleListInterface.vehicle_data)
+        # if(i_data_count > 0):
+        #     self.obj_VehicleListInterface.i_start_index = i_start_index
+        #     self.obj_VehicleListInterface.i_end_index = (i_start_index + i_data_count) - 1
+
+        #     self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+
+        # data = []
+        # required_data = []
+        # if(self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] != ""):
+        #     data = self.obj_core.obj_Vehicle.search_vehicle_number(self.obj_VehicleListInterface.vehicle_data, self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"])
+        # else:
+        #     data = self.obj_VehicleListInterface.vehicle_data
+
+        # required_data = data[((self.obj_VehicleListInterface.i_start_index)-6) : ((self.obj_VehicleListInterface.i_start_index)-1)]
+        # i_data_count = len(required_data)
+        # if(i_data_count > 0 ):
+        #     self.obj_VehicleListInterface.i_end_index = (self.obj_VehicleListInterface.i_start_index) - 1
+        #     self.obj_VehicleListInterface.i_start_index = (self.obj_VehicleListInterface.i_start_index)-5
+
+        # self.obj_VehicleListInterface.update_table(required_data)
 
     # def onclick_action(self):
     #     if (self.obj_VehicleListInterface.bool_filter_popup is True):
@@ -810,221 +817,71 @@ class VehicleListController:
     #         self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
 
     def onclick_add(self):
-        self.obj_VehicleListInterface.add_Vechile()
+        self.obj_VehicleListInterface.Add_Face_Form()
 
     def onclick_Add_cancel(self):
-        self.obj_VehicleListInterface.destroy_add_vehicle_form()
+        self.obj_VehicleListInterface.destroy_registration_form()
 
     def onclick_add_save(self):
-        str_company = self.obj_VehicleListInterface.entry_selected_company.get()
-        str_model = self.obj_VehicleListInterface.entry_model.get()
-        str_type = self.obj_VehicleListInterface.entry_type.get()
-        str_number = self.obj_VehicleListInterface.entry_number.get().strip().upper()
-        str_color = self.obj_VehicleListInterface.entry_color.get()
-        str_owner = self.obj_VehicleListInterface.entry_owner.get()
-        str_status = self.obj_VehicleListInterface.entry_selected_status.get()
-        i_date = self.obj_VehicleListInterface.entry_date.get().strip()
-        self.list_company = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan"]
-        self.list_vehicle_type = ["Personal", "Truck", "Motorcycle", "Bus", "Van", "Auto", "Taxi",
-                                  "All", "Commercial", "Electric", "SUV"]
+        # Retrieve data from the interface
+        print("heelloo")
+        str_path = self.obj_VehicleListInterface.photo_path
+        str_first_name = self.obj_VehicleListInterface.entry_first_name.get().strip()
+        str_middle_name = self.obj_VehicleListInterface.entry_middle_name.get().strip()
 
-        error_count = 0
-        latest_error_message = None
+        str_last_name = self.obj_VehicleListInterface.entry_last_name.get().strip()
+        str_age = self.obj_VehicleListInterface.entry_age.get().strip()
+        str_gender = self.obj_VehicleListInterface.entry_selected_gender.get().strip()
+        str_status = self.obj_VehicleListInterface.entry_selected_status.get().strip()
 
-        if not str_type.strip():
-            latest_error_message = "Vehcile Type cannot be empty."
-            self.obj_VehicleListInterface.label_error.configure(text="Vehcile Type cannot be empty")
-            self.obj_VehicleListInterface.entry_type.configure(border_color="red")
-            error_count += 1
+        # Print the details for debugging purposes
+        print(str_first_name, str_middle_name, str_last_name, str_age, str_gender, str_status)
 
-        # Check for valid vehicle type
-        elif str_type not in self.list_vehicle_type:
-            latest_error_message = f"Vehicle Type '{str_type}' is not valid."
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
-            self.obj_VehicleListInterface.entry_type.configure(border_color="red")
+        # Encode the photo path into base64
+        if str_path:  # Only encode if the path is not empty
+            try:
+                with open(str_path, "rb") as photo_file:
+                    # Read the photo file as binary
+                    photo_binary = photo_file.read()
+                    # Convert the binary data to base64
+                    encoded_photo = base64.b64encode(photo_binary).decode("utf-8")
+            except Exception as e:
+                # Handle errors (file not found, etc.)
+                print(f"Error encoding photo: {e}")
+                encoded_photo = None
         else:
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_type.configure(border_color="green")
+            encoded_photo = None
 
-        # Check for valid company
-        if str_company not in self.list_company:
-            latest_error_message = f"Company '{str_company}' is not valid."
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
-            self.obj_VehicleListInterface.entry_selected_company.configure(border_color="red")
-        elif str_company.strip():
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_selected_company.configure(border_color="green")
-        # check model
-        if not (1 <= len(str_model) <= 10):
-            latest_error_message = "Model name length should be between [1-10]."
-            error_count += 1
-            self.obj_VehicleListInterface.entry_model.configure(border_color="red")
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-        elif not re.match(r'^[A-Za-z0-9-]+$', str_model.strip()):
-            latest_error_message = "Model name should be: [(A-Z),(a-z),(0-9),(-)]."
-            error_count += 1
-            self.obj_VehicleListInterface.entry_model.configure(border_color="red")
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-        else:
+        # Add the person/vehicle to the database
+        dict_status = self.obj_core.obj_Vehicle.add_vehicle(
+            str_first_name, str_middle_name, str_last_name, str_age, str_gender, str_status, encoded_photo
+        )
 
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_model.configure(border_color="green")
-
-        str_color= str_color.strip()
-        if not 3 <= len(str_color) and len(str_color) <= 10:
-            latest_error_message = "Colour length between: [3-10] required."
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-            self.obj_VehicleListInterface.entry_color.configure(border_color="red")
-
-        # Check if colour contains only alphabetic characters
-        elif not str_color.isalpha():
-            latest_error_message = "Colour should : [(A-Z),(a-z)] required"
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-            self.obj_VehicleListInterface.entry_color.configure(border_color="red")
-
-        else:
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_color.configure(border_color="green")
-
-        # Check if owner is empty or contains invalid characters
-
-        if not (3 <= len(str_owner) <= 50):
-            latest_error_message = "Owner name lenght should be: [3-50]"
-            error_count += 1
-            self.obj_VehicleListInterface.entry_owner.configure(border_color="red")
-
-        elif not all(char.isalpha() or char.isspace() for char in str_owner.strip()):
-            latest_error_message = "Owner name should: [(A-Z),(a-z) and spaces] required"
-            error_count += 1
-            self.obj_VehicleListInterface.entry_owner.configure(border_color="red")
-
-        else:
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_owner.configure(border_color="green")
-
-        # Check for valid manufacturing date
-        current_year = datetime.datetime.now().year
-        min_year = current_year - 50
-
-
-        if i_date.isdigit() and min_year <= int(i_date) <= current_year:
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_date.configure(border_color="green")
-        else:
-            latest_error_message = f" manufacturing date between {min_year} and {current_year}."
-            self.obj_VehicleListInterface.label_error.configure(
-                text=f"Please enter a valid manufacturing date between {min_year} and {current_year}")
-            self.obj_VehicleListInterface.entry_date.configure(border_color="red")
-            error_count += 1
-
-        # Check for blacklist status (0 or 1)
-        if str_status in ["white-list", "black-list"]:
-            self.obj_VehicleListInterface.entry_selected_status.configure(border_color="green")
-        else:
-            latest_error_message = "Status must be 'white-list' or 'black-list'."
-            self.obj_VehicleListInterface.label_error.configure(text="Status must be 'white-list' or 'black-list'")
-            self.obj_VehicleListInterface.entry_selected_status.configure(border_color="red")
-            error_count += 1
-
-        if not (8 <= len(str_number) <= 10):
-            latest_error_message = "Vehcile Number lenght should be: [8-10]"
-            error_count += 1
-            self.obj_VehicleListInterface.entry_number.configure(border_color="red")
-
-        elif not self.validate_number(str_number):
-            latest_error_message = "Vehcile Number should in Indian RTO format !"
-            error_count += 1
-            self.obj_VehicleListInterface.entry_number.configure(border_color="red")
-
-        else:
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_number.configure(border_color="green")
-
-        if error_count > 0 and latest_error_message:
-            print("Latest error message:", latest_error_message)
-            # Optionally display the message on a label or a dialog
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-
-        # Convert the status to integer (1 for black-list, 0 for white-list)
-        i_status = 0
-        if str_status == "black-list":
-            i_status = 1
-        print(f" before add {len(self.obj_VehicleListInterface.vehicle_data)} vehicles were present.")
-        # If no errors, proceed with adding the vehicle
-        if error_count == 0:
-            dict_status = self.obj_core.obj_Vehicle.add_vehicle(
-                str_company, str_model.strip(), str_type, str_number, str_color, i_date, str_owner.strip(), i_status
+        # Handle errors or success messages
+        print(dict_status, "(((((((((((((((((())))))))))))))))))")
+        if dict_status["str_error_msg_heading"] == "Error! Duplicate Entries":
+            # If duplicate vehicle is found, show a popup
+            self.obj_Interface.on_error(
+                "home",
+                "Error! Duplicate Entries",
+                f"A PErsion with the Name '{str_first_name + " " + str_middle_name + " " + str_last_name}' already present.",
+                "#FF4B4B"
             )
+        elif dict_status["str_error_msg_heading"] == "Success":
+            # If no errors, show success message
+            self.obj_Interface.on_error(
+                "home",
+                "Data Added Successfully",
+                "",
+                "#63CA6D",  # Green for success
+                50
+            )
+            self.onclick_Add_cancel()
 
-            if dict_status["str_error_msg_heading"] == "Error! Duplicate Entries":
-                # If duplicate vehicle is found, show a popup
-                self.obj_Interface.on_error(
-                    "home",
-                    "Error! Duplicate Entries",
-                    f"A vehcile with  the ID '{str_number}' already present.",
-                    "#FF4B4B"
-                )
+            self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+                self.obj_VehicleListInterface.dict_filter_criteria)
 
-            elif dict_status["str_error_msg_heading"] == "" and dict_status["str_error_msg"] == "":
-                # If no errors, show success message
-                self.obj_Interface.on_error(
-                    "home",
-                    "Data Added Successfully",
-                    "",
-                    "#63CA6D",  # Green for success
-                    50
-                )
-
-                bool_update_data = (((self.obj_VehicleListInterface.dict_filter_criteria["str_owner"] == "%") and
-                                     (self.obj_VehicleListInterface.dict_filter_criteria["str_type"] == "%") and
-                                     (self.obj_VehicleListInterface.dict_filter_criteria["str_color"] == "%")) or
-                                    ((self.obj_VehicleListInterface.dict_filter_criteria["str_owner"] == str_owner) or
-                                     (self.obj_VehicleListInterface.dict_filter_criteria["str_type"] == str_type) or
-                                     (self.obj_VehicleListInterface.dict_filter_criteria["str_color"] == str_color)))
-
-                if (bool_update_data):
-                    self.obj_VehicleListInterface.i_total_data = len(self.obj_VehicleListInterface.vehicle_data) + 1
-
-                    self.obj_VehicleListInterface.vehicle_data.append({
-                        "vehicle_number": str_number,
-                        "vehicle_type": str_type,
-                        "vehicle_color": str_color,
-                        "vehicle_owner": str_owner,
-                        "manufacturing_year": i_date,
-                        "vehicle_company": str_company,
-                        "vehicle_model": str_model,
-                        "vehicle_status": str_status
-                    })
-
-                if (self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] != ""):
-                    self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] = ""
-                    self.obj_VehicleListInterface.entry_search.delete(0, "end")
-                    self.obj_VehicleListInterface.entry_search.configure(placeholder_text="Enter Vehicle Number..")
-                    self.obj_Interface.obj_RootInterface.focus_set()
-
-                    if (not bool_update_data):
-                        self.obj_VehicleListInterface.i_total_data = len(self.obj_VehicleListInterface.vehicle_data)
-
-                    self.obj_Interface.dict_frames["vehicle_list"].i_start_index = 1
-                    self.obj_Interface.dict_frames[
-                        "vehicle_list"].i_end_index = 5 if self.obj_VehicleListInterface.i_total_data >= 5 else self.obj_VehicleListInterface.i_total_data
-                else:
-                    if (bool_update_data):
-                        if (((
-                                     self.obj_VehicleListInterface.i_end_index - self.obj_VehicleListInterface.i_start_index) + 1) < 5):
-                            self.obj_VehicleListInterface.i_end_index += 1
-
-                data = (self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)[
-                       ((self.obj_VehicleListInterface.i_start_index) - 1):(self.obj_VehicleListInterface.i_end_index)]
-                self.obj_VehicleListInterface.update_table(data)
-                self.obj_VehicleListInterface.destroy_add_vehicle_form()
-
-
-
+            self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
 
         else:
             # Display error message if update failed
@@ -1038,15 +895,199 @@ class VehicleListController:
 
         return
 
+        # str_company = self.obj_VehicleListInterface.entry_selected_company.get()
+        # str_model = self.obj_VehicleListInterface.entry_model.get()
+        # str_type = self.obj_VehicleListInterface.entry_type.get()
+        # str_number = self.obj_VehicleListInterface.entry_number.get().strip().upper()
+        # str_color = self.obj_VehicleListInterface.entry_color.get()
+        # str_owner = self.obj_VehicleListInterface.entry_owner.get()
+        # str_status = self.obj_VehicleListInterface.entry_selected_status.get()
+        # i_date = self.obj_VehicleListInterface.entry_date.get()
+        # self.list_company = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan"]
+        # self.list_vehicle_type = ["Personal", "Truck", "Motorcycle", "Bus", "Van", "Auto", "Taxi",
+        #                   "All", "Commercial", "Electric", "SUV"]
+
+        # error_count = 0
+        # latest_error_message = None
+
+        # if not str_type.strip():
+        #     latest_error_message = "Vehcile Type cannot be empty."
+        #     self.obj_VehicleListInterface.label_error.configure(text="Vehcile Type cannot be empty")
+        #     self.obj_VehicleListInterface.entry_type.configure(border_color="red")
+        #     error_count += 1
+
+        # # Check for valid vehicle type
+        # elif str_type not in self.list_vehicle_type:
+        #     latest_error_message = f"Vehicle Type '{str_type}' is not valid."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
+        #     self.obj_VehicleListInterface.entry_type.configure(border_color="red")
+        # else:
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_type.configure(border_color="green")
+
+        # # Check for valid company
+        # if str_company not in self.list_company:
+        #     latest_error_message = f"Company '{str_company}' is not valid."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
+        #     self.obj_VehicleListInterface.entry_selected_company.configure(border_color="red")
+        # elif str_company.strip():
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_selected_company.configure(border_color="green")
+        # #check model
+        # if not (1 <= len(str_model) <= 10):
+        #     latest_error_message = "Model name length should be between [1-10]."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_model.configure(border_color="red")
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        # elif not re.match(r'^[A-Za-z0-9-]+$', str_model):
+        #     latest_error_message = "Model name should be: [(A-Z),(a-z),(0-9),(-)]."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_model.configure(border_color="red")
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        # else:
+
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_model.configure(border_color="green")
+
+        # if not 3 <= len(str_color) and len(str_color)<=10 :
+        #     latest_error_message = "Colour length between: [3-10] required."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        #     self.obj_VehicleListInterface.entry_color.configure(border_color="red")
+
+        # # Check if colour contains only alphabetic characters
+        # elif not str_color.isalpha():
+        #     latest_error_message = "Colour should : [(A-Z),(a-z)] required"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        #     self.obj_VehicleListInterface.entry_color.configure(border_color="red")
+
+        # else:
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_color.configure(border_color="green")
+
+        # # Check if owner is empty or contains invalid characters
+
+        # if not (3 <= len(str_owner) <= 50):
+        #     latest_error_message = "Owner name lenght should be: [3-50]"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_owner.configure(border_color="red")
+
+        # elif not all(char.isalpha() or char.isspace() for char in str_owner.strip()):
+        #     latest_error_message = "Owner name should: [(A-Z),(a-z) and spaces] required"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_owner.configure(border_color="red")
+
+        # else:
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_owner.configure(border_color="green")
+
+        # # Check for valid manufacturing date
+        # current_year = datetime.datetime.now().year
+        # min_year = current_year - 50
+
+        # if i_date.isdigit() and min_year <= int(i_date) <= current_year:
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_date.configure(border_color="green")
+        # else:
+        #     latest_error_message = f" manufacturing date between {min_year} and {current_year}."
+        #     self.obj_VehicleListInterface.label_error.configure(text=f"Please enter a valid manufacturing date between {min_year} and {current_year}")
+        #     self.obj_VehicleListInterface.entry_date.configure(border_color="red")
+        #     error_count += 1
+
+        # # Check for blacklist status (0 or 1)
+        # if str_status  in ["white-list", "black-list"]:
+        #     self.obj_VehicleListInterface.entry_selected_status.configure(border_color="green")
+        # else:
+        #     latest_error_message = "Status must be 'white-list' or 'black-list'."
+        #     self.obj_VehicleListInterface.label_error.configure(text="Status must be 'white-list' or 'black-list'")
+        #     self.obj_VehicleListInterface.entry_selected_status.configure(border_color="red")
+        #     error_count += 1
+
+        # if not (8 <= len(str_number) <= 10):
+        #     latest_error_message = "Vehcile Number lenght should be: [8-10]"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_number.configure(border_color="red")
+
+        # elif not self.validate_number(str_number):
+        #     latest_error_message = "Vehcile Number should in Indian RTO format !"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_number.configure(border_color="red")
+
+        # else:
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_number.configure(border_color="green")
+
+        # if error_count > 0 and latest_error_message:
+        #         print("Latest error message:", latest_error_message)
+        #         # Optionally display the message on a label or a dialog
+        #         self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+
+        # # Convert the status to integer (1 for black-list, 0 for white-list)
+        # i_status = 0
+        # if str_status == "black-list":
+        #     i_status = 1
+        # print (f" before add {len(self.obj_VehicleListInterface.vehicle_data)} vehicles were present.")
+        # # If no errors, proceed with adding the vehicle
+        # if error_count == 0:
+        #     dict_status = self.obj_core.obj_Vehicle.add_vehicle(
+        #         str_company, str_model, str_type, str_number, str_color, i_date, str_owner, i_status
+        #     )
+
+        #     if dict_status["str_error_msg_heading"] == "Error! Duplicate Entries":
+        #         # If duplicate vehicle is found, show a popup
+        #         self.obj_Interface.on_error(
+        #             "home",
+        #             "Error! Duplicate Entries",
+        #             f"A vehcile with  the ID '{str_number}' already present.",
+        #             "#FF4B4B"
+        #         )
+
+        #     elif dict_status["str_error_msg_heading"] == "" and dict_status["str_error_msg"] == "":
+        #         # If no errors, show success message
+        #         self.obj_Interface.on_error(
+        #             "home",
+        #             "Data Added Successfully",
+        #             "",
+        #             "#63CA6D",  # Green for success
+        #             50
+        #         )
+        #         self.obj_VehicleListInterface.i_total_data += 1
+
+        #         if (len(self.obj_VehicleListInterface.vehicle_data) < 5):
+        #             self.obj_VehicleListInterface.i_end_index += 1
+
+        #         self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+        #             self.obj_VehicleListInterface.i_start_index - 1, self.obj_VehicleListInterface.dict_filter_criteria)
+
+        #         self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+        #         self.obj_VehicleListInterface.destroy_add_vehicle_form()
+
+        # else:
+        #     # Display error message if update failed
+        #     self.obj_Interface.on_error(
+        #         "home",
+        #         "Error! Invalid Data",
+        #         "Check if the entered data fulfiles the require condition",
+        #         "#FF4B4B"
+
+        #     )
+
+        # return
+
     def onclick_delete(self):
         confirm_delete = messagebox.askyesno(
             "Confirm Deletion",
-            f"Are you sure you want to delete {len(self.obj_VehicleListInterface.selected_vehicle_set)} selected vehicle ? ",
+            f"Are you sure you want to delete {len(self.obj_VehicleListInterface.selected_face_set), self.obj_VehicleListInterface.selected_face_set} Selected Persion ? ",
             icon='warning'
         )
+        print(self.obj_VehicleListInterface.selected_face_set)
 
         if confirm_delete:
-            if self.obj_core.obj_Vehicle.delete_vechiles(list(self.obj_VehicleListInterface.selected_vehicle_set)):
+
+            if self.obj_core.obj_Vehicle.delete_vechiles(list(self.obj_VehicleListInterface.selected_face_set)):
 
                 self.obj_Interface.on_error(
                     "home",
@@ -1055,19 +1096,50 @@ class VehicleListController:
                     "#63CA6D",
                     50
                 )
+                print("hello dtabase ")
                 self.obj_VehicleListInterface.i_total_data = self.obj_VehicleListInterface.i_total_data - len(
-                    self.obj_VehicleListInterface.selected_vehicle_set)
+                    self.obj_VehicleListInterface.selected_face_set)
 
-                self.obj_VehicleListInterface.destroy_add_vehicle_form()
+                # self.obj_VehicleListInterface.destroy_add_vehicle_form()
+                self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+                    self.obj_VehicleListInterface.dict_filter_criteria)
+
+                # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+                #     self.obj_VehicleListInterface.i_start_index - 1, self.obj_VehicleListInterface.dict_filter_criteria)
+                # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(self.obj_VehicleListInterface.dict_filter_criteria)
+                if (self.obj_VehicleListInterface.dict_filter_criteria["full_name"] != ""):
+                    self.obj_VehicleListInterface.i_total_data = len(self.obj_VehicleListInterface.vehicle_data)
+                    self.obj_VehicleListInterface.dict_filter_criteria["full_name"] = ""
+                    self.obj_VehicleListInterface.entry_search.delete(0, "end")
+                    self.obj_VehicleListInterface.entry_search.configure(placeholder_text="Enter Full Name..")
+                    self.obj_Interface.obj_RootInterface.focus_set()
+
+                self.obj_VehicleListInterface.i_total_data = self.obj_VehicleListInterface.i_total_data - len(
+                    self.obj_VehicleListInterface.selected_face_set)
 
                 self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
-                    self.obj_VehicleListInterface.i_start_index - 1, self.obj_VehicleListInterface.dict_filter_criteria)
+                    self.obj_VehicleListInterface.dict_filter_criteria)
 
-                if (len(self.obj_VehicleListInterface.vehicle_data) < 50):
-                    self.obj_VehicleListInterface.i_end_index = ((self.obj_VehicleListInterface.i_start_index + len(
-                        self.obj_VehicleListInterface.vehicle_data)) - 1)
+                data = []
+                while (True):
+                    if (len(self.obj_VehicleListInterface.vehicle_data) == 0):
+                        self.obj_VehicleListInterface.i_start_index = 0
+                        self.obj_VehicleListInterface.i_end_index = 0
+                        break
 
-                self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+                    data = (self.obj_VehicleListInterface.vehicle_data)[
+                           ((self.obj_VehicleListInterface.i_start_index) - 1):(
+                                   (self.obj_VehicleListInterface.i_start_index) + 4)]
+
+                    if (len(data) > 0):
+                        self.obj_VehicleListInterface.i_end_index = (self.obj_VehicleListInterface.i_start_index + len(
+                            data)) - 1
+                        break
+                    else:
+                        self.obj_VehicleListInterface.i_start_index -= 5
+                        self.obj_VehicleListInterface.i_end_index -= 5
+
+                self.obj_VehicleListInterface.update_table(data)
 
                 self.obj_VehicleListInterface.reset_checkbox()
 
@@ -1079,270 +1151,328 @@ class VehicleListController:
                     " "
                 )
 
+            #     if (len(self.obj_VehicleListInterface.vehicle_data) < 50):
+            #         self.obj_VehicleListInterface.i_end_index = ((self.obj_VehicleListInterface.i_start_index + len(self.obj_VehicleListInterface.vehicle_data)) - 1)
+
+            #     self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+
+            #     self.obj_VehicleListInterface.reset_checkbox()
+
+            # else:
+            #     self.obj_Interface.on_error(
+            #         "home",
+            #         "Error! Invalid Data",
+            #         "Check if the entered data fulfill the required conditions.",
+            #         " "
+            #     )
+
     def onclick_edit(self):
         self.obj_VehicleListInterface.edit_selected_Vehicle()
 
     def onclick_edit_save(self):
-        error_count = 0
-        correct_count = 0
-        str_number = self.obj_VehicleListInterface.entry_edit_number.get().strip()
-        str_company = self.obj_VehicleListInterface.entry_edit_selected_company.get().strip()
-        str_model = self.obj_VehicleListInterface.entry_edit_model.get().strip()
-        str_blacklist = self.obj_VehicleListInterface.entry_edit_selected_status.get().strip()
-        str_type = self.obj_VehicleListInterface.entry_edit_type.get()
-        str_color = self.obj_VehicleListInterface.entry_edit_color.get().strip()
-        date = self.obj_VehicleListInterface.entry_edit_date.get().strip()
-        str_owner = self.obj_VehicleListInterface.entry_edit_owner.get().strip()
-        vehicle = self.obj_VehicleListInterface.vehicle
-        wrong = ""
+        str_path = self.obj_VehicleListInterface.photo_path
+        str_first_name = self.obj_VehicleListInterface.Edit_entry_first_name.get().strip()
+        str_middle_name = self.obj_VehicleListInterface.Edit_entry_middle_name.get().strip()
 
-        if str_blacklist == "white-list":
-            str_blacklist = 0
+        str_last_name = self.obj_VehicleListInterface.Edit_entry_last_name.get().strip()
+        str_age = self.obj_VehicleListInterface.Edit_entry_age.get().strip()
+        str_gender = self.obj_VehicleListInterface.Edit_entry_selected_gender.get().strip()
+        str_status = self.obj_VehicleListInterface.Edit_entry_selected_status.get().strip()
+        str_id = self.obj_VehicleListInterface.vehicle.get("id")
+
+        # Print the details for debugging purposes
+        # print( str_first_name,str_middle_name,str_last_name,str_age, str_gender, str_status,str_path)
+        if str_path:  # Only encode if the path is not empty
+            try:
+                with open(str_path, "rb") as photo_file:
+                    # Read the photo file as binary
+                    photo_binary = photo_file.read()
+                    # Convert the binary data to base64
+                    encoded_photo = base64.b64encode(photo_binary).decode("utf-8")
+
+            except Exception as e:
+                # Handle errors (file not found, etc.)
+                print(f"Error encoding photo: {e}")
+                encoded_photo = None
         else:
-            str_blacklist = 1
+            encoded_photo = None
 
-        matching = 0
-        if (vehicle['vehicle_company'] == str_company):
-            matching += 1
-        if (vehicle['vehicle_model'] == str_model):
-            matching += 1
+        if (str_path == None):
+            str_path = self.obj_VehicleListInterface.old_photo
+            encoded_photo = str_path
 
-        if (vehicle['vehicle_status'] == str_blacklist):
-            matching += 1
+        # error_count=0
+        # correct_count=0
+        # str_number = self.obj_VehicleListInterface.entry_edit_number.get().strip()
+        # str_company = self.obj_VehicleListInterface.entry_edit_selected_company.get().strip()
+        # str_model = self.obj_VehicleListInterface.entry_edit_model.get().strip()
+        # str_blacklist = self.obj_VehicleListInterface.entry_edit_selected_status.get().strip()
+        # str_type = self.obj_VehicleListInterface.entry_edit_type.get()
+        # str_color = self.obj_VehicleListInterface.entry_edit_color.get().strip()
+        # date = self.obj_VehicleListInterface.entry_edit_date.get().strip()
+        # str_owner = self.obj_VehicleListInterface.entry_edit_owner.get().strip()
+        # vehicle = self.obj_VehicleListInterface.vehicle
+        # wrong=""
 
-        if (vehicle['vehicle_type'] == str_type):
-            matching += 1
-        if (vehicle['vehicle_color'] == str_color):
-            matching += 1
+        # if str_blacklist == "white-list":
+        #     str_blacklist = 0
+        # else:
+        #     str_blacklist = 1
 
-        if vehicle.get('manufacturing_year') and date:
-            if int(vehicle['manufacturing_year']) == int(date):
-                matching += 1
+        full_name = str_first_name + " " + str_middle_name + " " + str_last_name
 
+        # # Insert query for the personregister table
+        # insert_query = f"""INSERT INTO [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
+        #                     (full_name, age, gender, status, photo_path)
+        #                     VALUES (?, ?, ?, ?, ?)
+
+        dict_status = self.obj_core.obj_Vehicle.update_vehicle(
+            full_name, str_age, str_gender, str_status, encoded_photo, str_id, "Anu")
+
+        # self.obj_VehicleListInterface.reset_checkbox()
+        # self.obj_VehicleListInterface.destroy_edit_vehicle_form()
+
+        # Check if the update was successful
+        if dict_status["str_error_msg_heading"] == "" and dict_status["str_error_msg"] == "":
+            self.obj_Interface.switch_frames('vehicle_list')
+
+            # Display success message
+            self.obj_Interface.on_error(
+                "home",
+                "Data Edited Successfully",
+                "",
+                "#63CA6D",
+                50
+            )
+
+            self.obj_VehicleListInterface.selected_face_set.clear()
+            self.obj_VehicleListInterface.update_button_states()
+            self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+                self.obj_VehicleListInterface.dict_filter_criteria)
+
+            self.obj_VehicleListInterface.update_table(self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+            # self.onclick_action()
+
+            # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+            #     self.obj_VehicleListInterface.i_start_index - 1,
+            #     self.obj_VehicleListInterface.dict_filter_criteria)
+            # self.obj_VehicleListInterface.update_table(
+            #     self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
         else:
-            print("Manufacturing year or date is missing.")
+            # Display error message if update failed
+            self.obj_Interface.on_error(
+                "home",
+                dict_status["str_error_msg_heading"],
+                dict_status["str_error_msg"],
+                "#FF4B4B"
+            )
 
-        if (vehicle['vehicle_owner'] == str_owner):
-            matching += 1
+        # matching=0
+        # if(self.vehicle['full_name']==str_first_name+" "):
+        #     matching+=1
+        # if (vehicle['vehicle_model'] == str_model):
+        #     matching+=1
 
-        self.list_company = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan", "Audi"]
-        self.list_vehicle_type = ["Personal", "Truck", "Motorcycle", "Bus", "Van", "Auto", "Taxi",
-                                  "All", "Commercial", "Electric", "SUV"]
+        # if (vehicle['vehicle_status'] == str_blacklist):
+        #     matching+=1
 
-        # Check for valid vehicle type
-        # Variable to store the latest error message
-        latest_error_message = None
-        if not str_type.strip():
-            latest_error_message = "Vehcile Type cannot be empty."
-            self.obj_VehicleListInterface.label_error.configure(text="Vehcile Type cannot be empty")
-            self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="red")
-            error_count += 1
+        # if (vehicle['vehicle_type'] == str_type):
+        #     matching+=1
+        # if (vehicle['vehicle_color'] == str_color):
+        #     matching+=1
 
-        # Check for valid vehicle type
-        elif str_type not in self.list_vehicle_type:
-            latest_error_message = f"Vehicle Type '{str_type}' is not valid."
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
-            self.obj_VehicleListInterface.entry_edit_type.configure(border_color="red")
-        else:
-            correct_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_edit_type.configure(border_color="green")
+        # if vehicle.get('manufacturing_year') and date:
+        #         if int(vehicle['manufacturing_year']) == int(date):
+        #             matching+=1
 
-        # Check for valid company
-        if str_company not in self.list_company:
-            latest_error_message = f"Company '{str_company}' is not valid."
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
-            self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="red")
-        elif str_company.strip():
-            correct_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="green")
+        # else:
+        #     print("Manufacturing year or date is missing.")
 
-        # Check if company name is empty
-        if not str_company.strip():
-            latest_error_message = "Company name cannot be empty."
-            self.obj_VehicleListInterface.label_error.configure(text="Company name cannot be empty")
-            self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="red")
-            error_count += 1
+        # if(vehicle['vehicle_owner']==str_owner):
+        #     matching+=1
 
-        # Check if model is empty
-        if not (1 <= len(str_model) <= 10):
-            latest_error_message = "Model name length should be between [1-10]."
-            error_count += 1
-            self.obj_VehicleListInterface.entry_edit_model.configure(border_color="red")
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-        elif not re.match(r'^[A-Za-z0-9-]+$', str_model):
-            latest_error_message = "Model name should be: [(A-Z),(a-z),(0-9),(-)]."
-            error_count += 1
-            self.obj_VehicleListInterface.entry_edit_model.configure(border_color="red")
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-        else:
-            correct_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_edit_model.configure(border_color="green")
+        # self.list_company = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan","Audi"]
+        # self.list_vehicle_type = ["Personal", "Truck", "Motorcycle", "Bus", "Van", "Auto", "Taxi",
+        #                   "All", "Commercial", "Electric", "SUV"]
 
-        # Check if color is empty
-        if not 3 <= len(str_color) and len(str_color) <= 10:
-            latest_error_message = "Colour length between: [3-10] required."
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-            self.obj_VehicleListInterface.entry_edit_color.configure(border_color="red")
+        # # Check for valid vehicle type
+        # # Variable to store the latest error message
+        # latest_error_message = None
+        # if not str_type.strip():
+        #     latest_error_message = "Vehcile Type cannot be empty."
+        #     self.obj_VehicleListInterface.label_error.configure(text="Vehcile Type cannot be empty")
+        #     self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="red")
+        #     error_count += 1
 
-        # Check if colour contains only alphabetic characters
-        elif not str_color.isalpha():
-            latest_error_message = "Colour should : [(A-Z),(a-z)] required"
-            error_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-            self.obj_VehicleListInterface.entry_edit_color.configure(border_color="red")
+        # # Check for valid vehicle type
+        # elif str_type not in self.list_vehicle_type:
+        #     latest_error_message = f"Vehicle Type '{str_type}' is not valid."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
+        #     self.obj_VehicleListInterface.entry_edit_type.configure(border_color="red")
+        # else:
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_edit_type.configure(border_color="green")
 
-        else:
-            correct_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_edit_color.configure(border_color="green")
+        # # Check for valid company
+        # if str_company not in self.list_company:
+        #     latest_error_message = f"Company '{str_company}' is not valid."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="Please choose from the list")
+        #     self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="red")
+        # elif str_company.strip():
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="green")
 
-        # Check if owner is empty or contains invalid characters
+        # # Check if company name is empty
+        # if not str_company.strip():
+        #     latest_error_message = "Company name cannot be empty."
+        #     self.obj_VehicleListInterface.label_error.configure(text="Company name cannot be empty")
+        #     self.obj_VehicleListInterface.entry_edit_selected_company.configure(border_color="red")
+        #     error_count += 1
 
-        if not (3 <= len(str_owner) <= 50):
-            latest_error_message = "Owner name lenght should be: [3-50]"
-            error_count += 1
-            self.obj_VehicleListInterface.entry_edit_owner.configure(border_color="red")
+        # # Check if model is empty
+        # if not (1 <= len(str_model) <= 10):
+        #     latest_error_message = "Model name length should be between [1-10]."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_edit_model.configure(border_color="red")
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        # elif not re.match(r'^[A-Za-z0-9-]+$', str_model):
+        #     latest_error_message = "Model name should be: [(A-Z),(a-z),(0-9),(-)]."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_edit_model.configure(border_color="red")
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        # else:
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_edit_model.configure(border_color="green")
 
-        elif not all(char.isalpha() or char.isspace() for char in str_owner.strip()):
-            latest_error_message = "Owner name should: [(A-Z),(a-z) and spaces] required"
-            error_count += 1
-            self.obj_VehicleListInterface.entry_edit_owner.configure(border_color="red")
+        # # Check if color is empty
+        # if not 3 <= len(str_color) and len(str_color)<=10 :
+        #     latest_error_message = "Colour length between: [3-10] required."
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        #     self.obj_VehicleListInterface.entry_edit_color.configure(border_color="red")
 
-        else:
-            correct_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_edit_owner.configure(border_color="green")
+        # # Check if colour contains only alphabetic characters
+        # elif not str_color.isalpha():
+        #     latest_error_message = "Colour should : [(A-Z),(a-z)] required"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        #     self.obj_VehicleListInterface.entry_edit_color.configure(border_color="red")
 
-        # Check for valid manufacturing date
-        current_year = datetime.datetime.now().year
-        min_year = current_year - 50
+        # else:
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_edit_color.configure(border_color="green")
 
-        if date.isdigit() and min_year <= int(date) <= current_year:
-            correct_count += 1
-            self.obj_VehicleListInterface.label_error.configure(text="")
-            self.obj_VehicleListInterface.entry_edit_date.configure(border_color="green")
-        else:
-            latest_error_message = f" manufacturing date between {min_year} and {current_year}."
-            self.obj_VehicleListInterface.label_error.configure(
-                text=f"Please enter a valid manufacturing date between {min_year} and {current_year}")
-            self.obj_VehicleListInterface.entry_edit_date.configure(border_color="red")
-            error_count += 1
+        # # Check if owner is empty or contains invalid characters
 
-        # Check for blacklist status (0 or 1)
-        if str_blacklist == 0 or str_blacklist == 1:
-            correct_count += 1
-            self.obj_VehicleListInterface.entry_edit_selected_status.configure(border_color="green")
-        else:
-            latest_error_message = "Status must be 'white-list' or 'black-list'."
-            self.obj_VehicleListInterface.label_error.configure(text="Status must be 'white-list' or 'black-list'")
-            self.obj_VehicleListInterface.entry_edit_selected_status.configure(border_color="red")
-            error_count += 1
+        # if not (3 <= len(str_owner) <= 50):
+        #     latest_error_message = "Owner name lenght should be: [3-50]"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_edit_owner.configure(border_color="red")
 
-        # Check if data is already present (matching condition)
-        if matching == 7:
-            self.obj_VehicleListInterface.label_error.configure(text="Data is already present")
-        else:
-            # After all validations, show the latest error message if error_count > 0
-            if error_count > 0 and latest_error_message:
-                self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
-                # Update vehicle using the core method
-            if matching == 7:
-                self.obj_VehicleListInterface.label_error.configure(text="Data is allready present")
-                self.obj_Interface.on_error(
-                    "home",
-                    "Data is already present",
-                    "",
-                    "#FF4B4B",
-                    50
-                )
+        # elif not all(char.isalpha() or char.isspace() for char in str_owner.strip()):
+        #     latest_error_message = "Owner name should: [(A-Z),(a-z) and spaces] required"
+        #     error_count += 1
+        #     self.obj_VehicleListInterface.entry_edit_owner.configure(border_color="red")
 
-            else:
-                if error_count == 0 and matching < 7:
-                    dict_status = self.obj_core.obj_Vehicle.update_vehicle(
-                        str_company, str_model, str_type, str_number, str_color, date, str_owner, str_blacklist, "Anu"
-                    )
-                    self.obj_VehicleListInterface.reset_checkbox()
-                    self.obj_VehicleListInterface.destroy_edit_vehicle_form()
+        # else:
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_edit_owner.configure(border_color="green")
 
-                    # Check if the update was successful
-                    if dict_status["str_error_msg_heading"] == "" and dict_status["str_error_msg"] == "":
-                        self.obj_Interface.switch_frames('vehicle_list')
+        # # Check for valid manufacturing date
+        # current_year = datetime.datetime.now().year
+        # min_year = current_year - 50
 
-                        # Display success message
-                        self.obj_Interface.on_error(
-                            "home",
-                            "Data Edited Successfully",
-                            "",
-                            "#63CA6D",
-                            50
-                        )
+        # if date.isdigit() and min_year <= int(date) <= current_year:
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.label_error.configure(text="")
+        #     self.obj_VehicleListInterface.entry_edit_date.configure(border_color="green")
+        # else:
+        #     latest_error_message = f" manufacturing date between {min_year} and {current_year}."
+        #     self.obj_VehicleListInterface.label_error.configure(text=f"Please enter a valid manufacturing date between {min_year} and {current_year}")
+        #     self.obj_VehicleListInterface.entry_edit_date.configure(border_color="red")
+        #     error_count += 1
 
-                        self.obj_VehicleListInterface.selected_vehicle_set.clear()
-                        self.obj_VehicleListInterface.update_button_states()
-                        # # self.onclick_action()
-                        #
-                        # self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
-                        #     self.obj_VehicleListInterface.i_start_index - 1,
-                        #     self.obj_VehicleListInterface.dict_filter_criteria)
-                        # self.obj_VehicleListInterface.update_table(
-                        #     self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+        # # Check for blacklist status (0 or 1)
+        # if str_blacklist == 0 or str_blacklist == 1:
+        #     correct_count += 1
+        #     self.obj_VehicleListInterface.entry_edit_selected_status.configure(border_color="green")
+        # else:
+        #     latest_error_message = "Status must be 'white-list' or 'black-list'."
+        #     self.obj_VehicleListInterface.label_error.configure(text="Status must be 'white-list' or 'black-list'")
+        #     self.obj_VehicleListInterface.entry_edit_selected_status.configure(border_color="red")
+        #     error_count += 1
 
-                        data = []
-                        start_pos = (self.obj_VehicleListInterface.i_start_index) - 1
-                        end_pos = self.obj_VehicleListInterface.i_end_index
+        # # Check if data is already present (matching condition)
+        # if matching == 7:
+        #     self.obj_VehicleListInterface.label_error.configure(text="Data is already present")
+        # else:
+        #     # After all validations, show the latest error message if error_count > 0
+        #     if error_count > 0 and latest_error_message:
+        #      self.obj_VehicleListInterface.label_error.configure(text=latest_error_message)
+        #         # Update vehicle using the core method
+        #     if matching == 7:
+        #             self.obj_VehicleListInterface.label_error.configure(text="Data is allready present")
+        #             self.obj_Interface.on_error(
+        #                 "home",
+        #                 "Data is already present",
+        #                 "",
+        #                 "#FF4B4B",
+        #                 50
+        #             )
 
-                        if (self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"] == ""):
-                            for i in range(start_pos, end_pos):
-                                if (self.obj_VehicleListInterface.vehicle_data[i]["vehicle_number"] == str_number):
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_type"] = str_type
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_color"] = str_color
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_owner"] = str_owner
-                                    self.obj_VehicleListInterface.vehicle_data[i]["manufacturing_year"] = date
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_company"] = str_company
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_model"] = str_model
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_status"] = str_blacklist
-                                    break
-                            self.obj_VehicleListInterface.update_table(
-                                (self.obj_VehicleListInterface.vehicle_data)[start_pos:end_pos])
+        #     else:
+        #             if error_count == 0 and matching < 7:
+        #                 dict_status = self.obj_core.obj_Vehicle.update_vehicle(
+        #                     str_company, str_model, str_type, str_number, str_color, date, str_owner, str_blacklist, "Anu"
+        #                 )
+        #                 self.obj_VehicleListInterface.reset_checkbox()
+        #                 self.obj_VehicleListInterface.destroy_edit_vehicle_form()
 
-                        else:
-                            for i in range(0, len(self.obj_VehicleListInterface.vehicle_data)):
-                                if (self.obj_VehicleListInterface.vehicle_data[i]["vehicle_number"] == str_number):
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_type"] = str_type
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_color"] = str_color
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_owner"] = str_owner
-                                    self.obj_VehicleListInterface.vehicle_data[i]["manufacturing_year"] = date
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_company"] = str_company
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_model"] = str_model
-                                    self.obj_VehicleListInterface.vehicle_data[i]["vehicle_status"] = str_blacklist
-                                    break
-                            data = self.obj_core.obj_Vehicle.search_vehicle_number(
-                                self.obj_VehicleListInterface.vehicle_data,
-                                self.obj_VehicleListInterface.dict_filter_criteria["str_vehicle_number"])
-                            self.obj_VehicleListInterface.update_table(data[start_pos:end_pos])
+        #                 # Check if the update was successful
+        #                 if dict_status["str_error_msg_heading"] == "" and dict_status["str_error_msg"] == "":
+        #                     self.obj_Interface.switch_frames('vehicle_list')
 
-                    else:
-                        # Display error message if update failed
-                        self.obj_Interface.on_error(
-                            "home",
-                            dict_status["str_error_msg_heading"],
-                            dict_status["str_error_msg"],
-                            "#FF4B4B"
-                        )
-                else:
-                    # Display error message if fields are not filled correctly
-                    self.obj_Interface.on_error(
-                        "home",
-                        "Error! Invalid Data",
-                        "Check if the entered data fulfiles the require condition",
-                        "#FF4B4B"
+        #                     # Display success message
+        #                     self.obj_Interface.on_error(
+        #                         "home",
+        #                         "Data Edited Successfully",
+        #                         "",
+        #                         "#63CA6D",
+        #                         50
+        #                     )
 
-                    )
+        #                     self.obj_VehicleListInterface.selected_vehicle_set.clear()
+        #                     self.obj_VehicleListInterface.update_button_states()
+        #                     # self.onclick_action()
 
-            return
+        #                     self.obj_VehicleListInterface.vehicle_data = self.obj_core.obj_Vehicle.fetch_vehicle_details(
+        #                         self.obj_VehicleListInterface.i_start_index - 1,
+        #                         self.obj_VehicleListInterface.dict_filter_criteria)
+        #                     self.obj_VehicleListInterface.update_table(
+        #                         self.obj_Interface.dict_frames["vehicle_list"].vehicle_data)
+        #                 else:
+        #                     # Display error message if update failed
+        #                     self.obj_Interface.on_error(
+        #                         "home",
+        #                         dict_status["str_error_msg_heading"],
+        #                         dict_status["str_error_msg"],
+        #                         "#FF4B4B"
+        #                     )
+        #             else:
+        #                 # Display error message if fields are not filled correctly
+        #                 self.obj_Interface.on_error(
+        #                     "home",
+        #                     "Error! Invalid Data",
+        #                     "Check if the entered data fulfiles the require condition",
+        #                     "#FF4B4B"
+
+        #                 )
+
+        #     return
