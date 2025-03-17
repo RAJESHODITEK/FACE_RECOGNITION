@@ -178,7 +178,17 @@ class HistoricalEventInterface(CTkFrame):
         )
         self.frame_form.grid_propagate(False)
         self.frame_table.columnconfigure(0, weight=1)
-        self.frame_table.grid(row=2, column=0, padx=(15, 2), pady=(10, 20), sticky="nsew")
+        self.frame_table.grid(row=2, column=0, padx=(15, 2), pady=(10, 10), sticky="nsew")
+
+        # self.white_label = CTkLabel(
+        #     self.frame_form,
+        #     text="",
+        #     fg_color="red",
+        #     font=("", 14),
+        #     height=40
+        # )
+        # self.white_label.grid(row=3, column=0, columnspan=2, padx=15, pady=(0, 0), sticky="ew")
+        #
 
         self.label_data_count = CTkLabel(
             self.frame_form,
@@ -187,6 +197,7 @@ class HistoricalEventInterface(CTkFrame):
             font=("", 14),
         )
         self.label_data_count.grid(row=3, column=0, padx=15, pady=(0, 10), sticky="w")
+
 
         self.button_next = CTkButton(
             self.frame_form,
@@ -203,6 +214,7 @@ class HistoricalEventInterface(CTkFrame):
         )
         self.button_next.grid(row=3, column=0, padx=15, pady=(0, 10), sticky="e")
 
+
         self.button_previous = CTkButton(
             self.frame_form,
             height=38,
@@ -217,6 +229,7 @@ class HistoricalEventInterface(CTkFrame):
             hover=False,
         )
         self.button_previous.grid(row=3, column=0, padx=(15, 120), pady=(0, 10), sticky="e")
+
 
         self.frame_filter = CTkFrame(
             self.frame_form,
@@ -701,19 +714,19 @@ class HistoricalEventInterface(CTkFrame):
 
         status_config = {
             0: {
-                "border_color": COLORS["warning"],  # Orange for Unknown
+                "border_color": COLORS["warning"],
                 "status": "Unknown",
                 "bg_color": "#FFF7ED",
                 "icon": "⚠️"
             },
             1: {
-                "border_color": COLORS["success"],  # Green for Verified
+                "border_color": COLORS["success"],
                 "status": "Verified",
                 "bg_color": "#ECFDF5",
                 "icon": "✓"
             },
             2: {
-                "border_color": COLORS["danger"],  # Red for Restricted
+                "border_color": COLORS["danger"],
                 "status": "Restricted",
                 "bg_color": "#FEF2F2",
                 "icon": "⛔"
@@ -728,7 +741,6 @@ class HistoricalEventInterface(CTkFrame):
         header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 15))
         header_frame.grid_propagate(False)
 
-        # Create separate header labels that you can position individually
         header_1 = CTkLabel(
             header_frame,
             # text="📸 Captured Image",
@@ -846,6 +858,7 @@ class HistoricalEventInterface(CTkFrame):
                 self.frame_table,
                 height=220,
                 fg_color=row_bg_color,
+                #fg_color="red",
                 corner_radius=20,
                 border_width=2,
                 border_color=COLORS["border"]
@@ -903,24 +916,6 @@ class HistoricalEventInterface(CTkFrame):
                 text_color="white"
             ).pack(padx=8, pady=3)
 
-            # serial_badge = CTkFrame(
-            #     img_frame,
-            #     fg_color="#232E51",
-            #     corner_radius=12,
-            #     height=24,  # Reduced height
-            #     width=45  # Reduced width
-            # )
-            # serial_badge.place(x=10, y=10)
-            #
-            # CTkLabel(
-            #     serial_badge,
-            #     fg_color="#232E51",
-            #     text=f"#{self.i_row_index}",
-            #     font=CTkFont(family="Helvetica", size=12, weight="bold"),  # Reduced font size
-            #     text_color="white",
-            #     height=20
-            # ).pack(padx=6, pady=2)
-
             frame_details = CTkFrame(
                 frame_row,
                 height=190,
@@ -929,7 +924,7 @@ class HistoricalEventInterface(CTkFrame):
             )
             frame_details.rowconfigure((0, 1, 2, 3, 4, 5), weight=1, uniform="row_height")
             frame_details.columnconfigure(0, weight=1)
-            frame_details.grid(row=0, column=1, padx=15, pady=15, sticky="nsew")
+            frame_details.grid(row=0, column=1, padx=1, pady=15, sticky="nsew")
 
             section_title = CTkFrame(
                 frame_details,
@@ -983,7 +978,8 @@ class HistoricalEventInterface(CTkFrame):
                     frame_details,
                     fg_color="transparent",
                     corner_radius=8,
-                    height=30
+                    height=30,
+                    width=400
                 )
                 frame_cell.grid(row=idx + 1, column=0, sticky="ew", pady=3)
 
@@ -1008,10 +1004,9 @@ class HistoricalEventInterface(CTkFrame):
                     fg_color="transparent"
                 ).place(relx=0.5, rely=0.5, anchor="center")
 
-                # Label with premium styling
                 CTkLabel(
                     frame_cell,
-                    text=f"{data['title']}:",
+                    text=f"{data['title']}",
                     font=CTkFont(family="Helvetica", size=14, weight="bold"),
                     text_color=COLORS["primary_dark"],
                     width=110,
@@ -1030,15 +1025,15 @@ class HistoricalEventInterface(CTkFrame):
                         width=150,
                         height=26
                     )
-                    status_label.pack(side="left", padx=1)
+                    status_label.pack(side="left", padx=10)
                 else:
                     CTkLabel(
                         frame_cell,
-                        text=data["value"],
+                        text=":   " + str(data["value"]),
                         font=CTkFont(family="Helvetica", size=13),
                         text_color=COLORS["text_secondary"],
                         anchor="w"
-                    ).pack(side="left", padx=5)
+                    ).pack(side="left", padx=(0,5))
 
             # Timeline frame
             frame_additional_details = CTkFrame(
@@ -1051,7 +1046,7 @@ class HistoricalEventInterface(CTkFrame):
             frame_additional_details.grid(row=0, column=2, sticky="nsew", padx=15, pady=15)
             frame_additional_details.grid_propagate(False)
 
-            #Time Line Container
+            # Time Line Container
             timeline_container = CTkFrame(
                 frame_additional_details,
                 fg_color=COLORS["accent"],
@@ -1061,7 +1056,7 @@ class HistoricalEventInterface(CTkFrame):
                 height=190,
                 width=300
             )
-            timeline_container.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
+            timeline_container.grid(row=1, column=0, sticky="nsew", pady=(0, 10), padx=(20, 0))
             timeline_container.pack_propagate(False)
 
             # First seen entry with small green dot
@@ -1104,21 +1099,12 @@ class HistoricalEventInterface(CTkFrame):
                 anchor="w"
             ).pack(side="top", anchor="w")
 
-            # connector line between first seen and last seen
-            line_frame = CTkFrame(
-                timeline_container,
-                width=2,
-                height=30,
-                fg_color=COLORS["border"]
-            )
-            line_frame.pack(padx=(9, 0), anchor="w")
-
             # Last seen entry with small red dot
             last_seen_frame = CTkFrame(
                 timeline_container,
                 fg_color="transparent"
             )
-            last_seen_frame.pack(fill="x", padx=15, pady=(5, 15))
+            last_seen_frame.pack(fill="x", padx=15, pady=(0, 5))  # Moved up by adjusting `pady`
 
             # Small red dot (10x10 pixels)
             last_seen_dot = CTkFrame(
@@ -1153,6 +1139,38 @@ class HistoricalEventInterface(CTkFrame):
                 anchor="w"
             ).pack(side="top", anchor="w")
 
+            # Is Acknowledged label
+            acknowledged_frame = CTkFrame(
+                timeline_container,
+                fg_color="transparent"
+            )
+            acknowledged_frame.pack(fill="x", padx=15, pady=(5, 10))
+
+            CTkLabel(
+                acknowledged_frame,
+                text="●",  # Emoji added here
+                font=CTkFont(family="Helvetica", size=23,weight="bold"),
+                text_color=COLORS["text_primary"],
+                anchor="w"
+            ).pack(side="left", padx=(5, 5))
+
+            # Acknowledged label
+            CTkLabel(
+                acknowledged_frame,
+                text="Is Acknowledged :",
+                font=CTkFont(family="Helvetica", size=13, weight="bold"),
+                text_color=COLORS["text_primary"],
+                anchor="w"
+            ).pack(side="left", padx=(5, 0))
+
+            CTkLabel(
+                acknowledged_frame,
+                text="No",
+                font=CTkFont(family="Helvetica", size=12),
+                text_color=COLORS["text_secondary"],
+                anchor="w"
+            ).pack(side="left", padx=(5, 0))
+
             # Get current status configuration
             event_id_current = row_data.get("event_id", "")
             person_name_current = row_data.get("person_name", "")
@@ -1182,6 +1200,33 @@ class HistoricalEventInterface(CTkFrame):
             )
             self.label_imge.pack(padx=8, pady=8, expand=True)
 
+            #=========================================================================
+
+            if row_index == 0 or row_index == 2:  # Index 0 is 1st row, index 2 is 3rd row
+                # Create a badge frame with a green background
+                verify_badge = CTkFrame(
+                    plate_container,
+                    fg_color=COLORS["success"],  # Use the success color (green)
+                    corner_radius=12,
+                    height=24,
+                    width=24
+                )
+                # Position in top left, with a small offset from the edge
+                verify_badge.place(x=12, y=12)
+
+                # Add a checkmark symbol inside the badge
+                CTkLabel(
+                    verify_badge,
+                    text="✓",
+                    font=CTkFont(family="Helvetica", size=14, weight="bold"),
+                    text_color="white",
+                    height=20
+                ).place(relx=0.5, rely=0.5, anchor="center")
+
+
+                #=======================================================================
+
+
             view_button = CTkButton(
                 plate_container,
                 text="View Details",
@@ -1210,8 +1255,8 @@ class HistoricalEventInterface(CTkFrame):
                                          eventdata=event_details,
                                          eventType=eventType))
 
-            # Create tooltip without hover effects
-            self.create_tooltip(self.label_imge, "Click to view detailed information")
+
+            self.create_tooltip(self.label_imge, "Click To View Detailed Info")
 
             # Increment row index counters
             self.i_row_index += 1
@@ -1423,6 +1468,31 @@ class HistoricalEventInterface(CTkFrame):
         )
         left_box.pack(side="left", padx=(0, 10), fill="both", expand=True)
         left_box.pack_propagate(False)
+        star_message_frame = CTkFrame(
+            self.ack_frame,  # Attaching to the main ack_frame instead of inside left_box
+            fg_color="transparent",
+        )
+        star_message_frame.pack(pady=(5, 15), padx=20, anchor="w")  # Positioning it below left_box
+
+        # Star symbol
+        star_label = CTkLabel(
+            star_message_frame,
+            text="⭐",
+            font=("Inter", 15, "bold"),
+            text_color="#FFD700",  # Golden color
+            bg_color="transparent"
+        )
+        star_label.pack(side="left", padx=(0, 5))  # Add spacing between star and text
+
+        # Message text
+        message_label = CTkLabel(
+            star_message_frame,
+            text="Hyyy I Allowed this people for an emergency",
+            font=("Inter", 12, "bold"),
+            text_color="#FFFFFF",
+            bg_color="transparent"
+        )
+        message_label.pack(side="left")  # Align it next to the star
 
         # Left box header
         left_header = CTkFrame(
@@ -1539,7 +1609,7 @@ class HistoricalEventInterface(CTkFrame):
             scan_line.place(relx=0.5, rely=new_pos, anchor="center")
 
             # Call this function again after a short delay
-            self.ack_window.after(50, lambda: animate_scan_line(new_pos, direction))
+            self.ack_window.after(30, lambda: animate_scan_line(new_pos, direction))
 
         # Start the scan line animation
         animate_scan_line()
@@ -1565,7 +1635,7 @@ class HistoricalEventInterface(CTkFrame):
             complete_message.place(relx=0.5, rely=0.5, anchor="center")
 
             # After 500ms, show the actual image
-            self.ack_window.after(500, lambda: display_captured_image(complete_message))
+            self.ack_window.after(10, lambda: display_captured_image(complete_message))
 
         # Function to display the final captured image
         def display_captured_image(message_label=None):
@@ -1597,8 +1667,24 @@ class HistoricalEventInterface(CTkFrame):
                     text_color="#6D7A9E",
                 ).pack(expand=True)
 
+                star_text_frame = CTkFrame(
+                    left_box,
+                    fg_color="transparent",
+                )
+                star_text_frame.pack(pady=(5, 10), padx=20)
+
+                # Star symbol and text
+                star_text_label = CTkLabel(
+                    star_text_frame,
+                    text="⭐ Captured at security checkpoint",
+                    font=("Inter", 12, "bold"),
+                    text_color="#FFFFFF",
+                    bg_color="transparent"
+                )
+                star_text_label.pack()
+
         # Schedule the switch to the final image after 2 seconds
-        self.ack_window.after(2000, show_final_image)
+        self.ack_window.after(1000, show_final_image)
 
         # Right Box with enhanced styling
         right_box = CTkFrame(
@@ -2023,6 +2109,7 @@ class HistoricalEventInterface(CTkFrame):
 
     def format_label(self, label, max_length=12):
         return f"{label.ljust(max_length)} : "
+
     def create_tooltip(self, widget, text):
         # Create a toplevel window for the tooltip
         tooltip = CTkToplevel()
@@ -2044,13 +2131,14 @@ class HistoricalEventInterface(CTkFrame):
         tooltip.configure(bg="#555555")
 
         def show_tooltip(event):
-            x = widget.winfo_rootx() + widget.winfo_width() - 200
-            y = widget.winfo_rooty() + (widget.winfo_height() // 2) + 10
+                x = widget.winfo_rootx() + widget.winfo_width() - 220
+                y = widget.winfo_rooty() + (widget.winfo_height() // 2) + 95
+                screen_height = widget.winfo_screenheight()
+                if y < int(screen_height+40):
+                    tooltip.geometry(f"+{x}+{y}")
+                    tooltip.deiconify()
 
-            tooltip.geometry(f"+{x}+{y}")
-            tooltip.deiconify()
-
-            tooltip.lift()
+                    tooltip.lift()
 
         def hide_tooltip(event):
             tooltip.withdraw()
@@ -2066,7 +2154,7 @@ class HistoricalEventInterface(CTkFrame):
             self.frame_filter.grid_propagate(False)
             self.frame_filter.grid(row=2, column=0, rowspan=2, sticky="ne", padx=19, pady=(2, 80))
             self.frame_filter.tkraise()
-        else:  # Popup is opened, need to closed it
+        else:
             self.frame_filter.grid_forget()
 
         self.bool_filter_popup = not self.bool_filter_popup

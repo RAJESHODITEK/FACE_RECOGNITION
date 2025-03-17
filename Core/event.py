@@ -17,6 +17,102 @@ class Event():
         self.dict_user_data = dict_user_data
 
     import pyodbc
+    # def fetch_person_details(self, i_start_index: int, dict_filter_criteria: dict, fetch_mode="standard",
+    #                               page_size=5):
+    #     """
+    #     Fetch events filtered by person name.
+    #
+    #     Args:
+    #         i_start_index: Starting index for pagination
+    #         dict_filter_criteria: Dictionary containing filter criteria
+    #         fetch_mode: 'standard' or 'combo' to determine behavior
+    #         page_size: Number of records to return (default 5)
+    #
+    #     Returns:
+    #         Tuple of (list_events, start_date)
+    #     """
+    #     list_events = []
+    #     start_date = ""
+    #
+    #     try:
+    #         connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']};PWD={self.dict_db_details['str_password']}"
+    #         connection = pyodbc.connect(connection_string, autocommit=True)
+    #         cursor = connection.cursor()
+    #
+    #         # Ensure correct database selection
+    #         cursor.execute(f"USE {self.dict_db_details['str_db_name']};")
+    #
+    #         # Base query for direct filtering by person_name
+    #         base_query = f"""
+    #             SELECT
+    #                 event_id,
+    #                 person_name,
+    #                 captured_img,
+    #                 start_time,
+    #                 end_time,
+    #                 acknowledgment_time,
+    #                 acknowledgment_message
+    #             FROM [FR_DB_NEW].[dbo].[event_details]
+    #         """
+    #
+    #         # Filter by person name only
+    #         conditions = []
+    #         params = []
+    #
+    #         if dict_filter_criteria.get("str_person_name"):
+    #             name_pattern = f"%{dict_filter_criteria['str_person_name']}%"
+    #             conditions.append("person_name LIKE ?")
+    #             params.append(name_pattern)
+    #
+    #         # Apply filter conditions
+    #         if conditions:
+    #             base_query += " WHERE " + " AND ".join(conditions)
+    #
+    #         # Add pagination
+    #         base_query += f" ORDER BY start_time DESC OFFSET ? ROWS FETCH NEXT {page_size} ROWS ONLY"
+    #         params.append(i_start_index)
+    #
+    #         # Debugging: Print query and params
+    #         print("Final Query:", base_query)
+    #         print("Params:", params)
+    #
+    #         # Execute query
+    #         cursor.execute(base_query, *params)
+    #         response = cursor.fetchall()
+    #
+    #         if response:
+    #             columns = [column[0] for column in cursor.description]
+    #             for data in response:
+    #                 record_dict = {columns[i]: data[i] for i in range(len(columns))}
+    #
+    #                 # Format datetime fields
+    #                 for key in ["start_time", "end_time", "acknowledgment_time"]:
+    #                     if record_dict.get(key):
+    #                         record_dict[key] = record_dict[key].strftime("%Y-%m-%d %H:%M:%S")
+    #
+    #                 list_events.append(record_dict)
+    #
+    #         # Fetch earliest event date
+    #         query = f"""
+    #             SELECT TOP 1 CONVERT(varchar, start_time, 105)
+    #             FROM [FR_DB_NEW].[dbo].[event_details]
+    #             ORDER BY start_time ASC
+    #         """
+    #         cursor.execute(query)
+    #         start_date_result = cursor.fetchone()
+    #         if start_date_result:
+    #             start_date = start_date_result[0]
+    #
+    #     except Exception as e:
+    #         print(f"Error in fetch_events: {e}")
+    #
+    #     finally:
+    #         if 'cursor' in locals() and cursor:
+    #             cursor.close()
+    #         if 'connection' in locals() and connection:
+    #             connection.close()
+    #
+    #     return list_events, start_date
 
     def fetch_event_combo_details(self, i_start_index: int, dict_filter_criteria: dict, fetch_mode="standard", page_size=5):
         """
@@ -172,130 +268,85 @@ class Event():
 
     def fetch_unrecognized_vehicles(self):
         """
-        Fetch vehicles with BlackList status from the database.
+        Fetch all blacklisted persons from the database.
+
+        Returns:
+            List of blacklisted persons with their event details
         """
-        list_unrecognized_event = []
+        list_events = []
+
         try:
-            print("Starting database connection...")
             connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']};PWD={self.dict_db_details['str_password']}"
-            print(
-                f"Connection string (without password): DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']}")
-
             connection = pyodbc.connect(connection_string, autocommit=True)
-            print("Connection established successfully")
-
             cursor = connection.cursor()
-            print(f"Using database: {self.dict_db_details['str_db_name']}")
 
             # Ensure correct database selection
             cursor.execute(f"USE {self.dict_db_details['str_db_name']};")
 
-            # Main query to fetch BlackList status data
-            print("Executing main query to fetch BlackList status data...")
+            # Simple query to fetch blacklisted persons
             query = f"""
-                   SELECT 
-                       ed.event_id,
-                       ed.person_name,
-                       ed.captured_img,
-                       ed.start_time,
-                       ed.end_time,
-                       ed.acknowledgment_time,
-                       ed.acknowledgment_message,
-                       pr.full_name,
-                       pr.age,
-                       pr.gender,
-                       pr.status,
-                       pr.photo_path,
-                       pr.id
-                   FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}] ed
-                   LEFT JOIN [{self.dict_db_details['str_db_name']}].[dbo].[personregister] pr
-                       ON ed.person_name = pr.full_name
-                   WHERE pr.status = 'BlackList'
-               """
+                SELECT 
+                    e.event_id,
+                    e.captured_img,
+                    e.start_time,
+                    e.end_time,
+                    e.acknowledgment_time,
+                    e.acknowledgment_message,
+                    e.person_name AS event_person_name,
+                    ISNULL(p.full_name, 'Unknown') AS person_name,
+                    p.age AS person_age,
+                    p.gender AS person_gender,
+                    p.status AS status,
+                    p.photo_path AS photo_path
+                FROM [{self.dict_db_details['str_db_name']}].[dbo].[event_details] e
+                INNER JOIN [{self.dict_db_details['str_db_name']}].[dbo].[personregister] p
+                ON (
+                    e.person_name = p.full_name 
+                    OR 
+                    (
+                        LTRIM(RTRIM(SUBSTRING(e.person_name, 1, CHARINDEX(' ', e.person_name + ' ') - 1))) = 
+                        LTRIM(RTRIM(SUBSTRING(p.full_name, 1, CHARINDEX(' ', p.full_name + ' ') - 1)))
+                        AND 
+                        LTRIM(RTRIM(SUBSTRING(e.person_name, CHARINDEX(' ', e.person_name + ' ') + 1, LEN(e.person_name)))) = 
+                        LTRIM(RTRIM(SUBSTRING(p.full_name, CHARINDEX(' ', p.full_name + ' ') + 1, LEN(p.full_name))))
+                    )
+                )
+                WHERE p.status = 'BlackList'
+                ORDER BY e.start_time DESC
+            """
+
             cursor.execute(query)
             response = cursor.fetchall()
-            print(f"Main query executed successfully! Retrieved {len(response)} rows.")
 
-            # Extract column names
-            columns = [column[0] for column in cursor.description]
-            print(f"Columns: {columns}")
+            if response:
+                columns = [column[0] for column in cursor.description]
+                for data in response:
+                    # Create record dictionary from query results
+                    record_dict = {columns[i]: data[i] for i in range(len(columns))}
 
-            # Debugging: Print raw fetched data
-            print("Fetched raw data:")
-            for data in response:
-                print(f"Raw record: {data}")
-                print(f"Start Time: {data[3]}, End Time: {data[4]}")
+                    # Format datetime fields
+                    for key in ["start_time", "end_time", "acknowledgment_time"]:
+                        if key in record_dict and record_dict[key] is not None:
+                            record_dict[key] = str(record_dict[key]).split('.')[0]
 
-            # Convert fetched data to list of dictionaries
-            for data in response:
-                record_dict = {columns[i]: data[i] for i in range(len(columns))}
-                print(f"Processing record ID: {record_dict.get('event_id')}")
+                    list_events.append(record_dict)
 
-                print(
-                    f"++++++++++++++++++Fetched start_time: {record_dict.get('start_time')}, end_time: {record_dict.get('end_time')}")
-
-                from datetime import datetime
-
-                # Convert Unix timestamps to readable format
-                try:
-                    if record_dict.get('start_time'):
-                        record_dict['start_time'] = datetime.fromtimestamp(int(record_dict['start_time'])).strftime(
-                            '%Y-%m-%d %H:%M:%S')
-                    if record_dict.get('end_time'):
-                        record_dict['end_time'] = datetime.fromtimestamp(int(record_dict['end_time'])).strftime(
-                            '%Y-%m-%d %H:%M:%S')
-                except Exception as time_error:
-                    print(f"Error converting timestamps: {time_error}")
-
-                print(
-                    f"//////////////////////Converted start_time: {record_dict.get('start_time')}, end_time: {record_dict.get('end_time')}")
-
-                # Check if images exist
-                if record_dict.get("photo_path") is None:
-                    print(f"Warning: photo_path is None for event ID {record_dict.get('event_id')}")
-                if record_dict.get("captured_img") is None:
-                    print(f"Warning: captured_img is None for event ID {record_dict.get('event_id')}")
-
-                # Process images
-                try:
-                    if record_dict.get("photo_path"):
-                        record_dict["person_img"] = self.base64_to_cv2mat_or_pillow_image_converter(
-                            record_dict["photo_path"], 200, 135)
-                        print("Processed person image successfully")
-                    else:
-                        print("Skipping person image conversion - null value")
-                        record_dict["person_img"] = None
-
-                    if record_dict.get("captured_img"):
-                        record_dict["captured_img"] = self.base64_to_cv2mat_or_pillow_image_converter(
-                            record_dict["captured_img"], 320, 270)
-                        print("Processed captured image successfully")
-                    else:
-                        print("Skipping captured image conversion - null value")
-                except Exception as img_error:
-                    print(f"Error processing images: {img_error}")
-
-                # Standardize field names to match frontend expectations
-                record_dict["person_age"] = record_dict.pop("age", None)
-                record_dict["person_gender"] = record_dict.pop("gender", None)
-
-                list_unrecognized_event.append(record_dict)
-
-            print(f"Final processed record count: {len(list_unrecognized_event)}")
+                # Process images if needed
+                for data in list_events:
+                    if "captured_img" in data and data["captured_img"] is not None:
+                        data["captured_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["captured_img"],
+                                                                                               250, 200)
 
         except Exception as e:
-            print(f"Database error: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"Error in fetch_blacklisted_persons: {e}")
 
         finally:
             if 'cursor' in locals() and cursor:
                 cursor.close()
             if 'connection' in locals() and connection:
                 connection.close()
-            print("Database connection closed")
 
-        return list_unrecognized_event
+        return list_events
 
     def validate_filter_criteria(self, str_start_date: str,
                                  str_end_date: str,
@@ -390,7 +441,7 @@ class Event():
             update_query = f"""
                 UPDATE [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
                 SET acknowledgment_message = ?,
-                    acknowledgment_time = GETDATE()
+                    acknowledgment_time = DATEDIFF(SECOND, '1970-01-01', GETUTCDATE())
                 WHERE event_id = ?
             """
 

@@ -486,86 +486,102 @@ class NotificationInterface(CTkFrame):
         if not selected_data:
             return
 
+        # Window Setup with premium styling
         self.ack_window = CTkToplevel()
-        self.ack_window.geometry("800x575")
-        self.ack_window.title("Acknowledgment Panel")
-        self.ack_window.configure(bg="#1E2749")
+        self.ack_window.geometry("900x650")
+        self.ack_window.title("Security Verification")
+        self.ack_window.configure(bg="#0F1525")
         self.ack_window.resizable(False, False)
         self.ack_window.attributes("-topmost", True)
 
-        # Center window
+        # Center window with slight offset
         screen_width = self.ack_window.winfo_screenwidth()
         screen_height = self.ack_window.winfo_screenheight()
-        x_position = (screen_width - 800) // 2 + 200
-        y_position = (screen_height - 575) // 2
-        self.ack_window.geometry(f"800x575+{x_position}+{y_position}")
+        x_position = (screen_width - 900) // 2 + 100
+        y_position = (screen_height - 650) // 2
+        self.ack_window.geometry(f"900x650+{x_position}+{y_position}")
         self.ack_window.focus_force()
 
-        # Main frame
+        # Main frame with subtle gradient effect
         self.ack_frame = CTkFrame(
             self.ack_window,
-            width=800,
-            height=575,
-            fg_color="#1E2749",
-            corner_radius=0,
+            width=900,
+            height=650,
+            fg_color=("#0F1525", "#0A0F1B"),  # Subtle gradient
+            corner_radius=15,
             border_width=1,
-            border_color="#4A5567"
+            border_color="#3A4766"
         )
         self.ack_frame.place(relx=0.5, rely=0.5, anchor="center")
         self.ack_frame.grid_propagate(False)
 
-        # Header
-        ack_label = CTkLabel(
+        header_frame = CTkFrame(
             self.ack_frame,
-            text="Acknowledgment Panel",
-            font=("Inter", 28, "bold"),
+            fg_color="transparent",
+            height=80
+        )
+        header_frame.pack(fill="x", pady=(20, 5))
+
+        ack_label = CTkLabel(
+            header_frame,
+            text="Acknowledgement Panel",
+            font=("Montserrat", 32, "bold"),
             text_color="#FFFFFF",
             bg_color="transparent"
         )
-        ack_label.pack(pady=(20, 10))
+        ack_label.pack(pady=(10, 0))
 
-        # Information boxes frame
+        accent_frame = CTkFrame(
+            self.ack_frame,
+            height=3,
+            width=150,
+            fg_color="#4D7CFE"
+        )
+        accent_frame.pack(pady=(0, 20))
+
         info_boxes_frame = CTkFrame(
             self.ack_frame,
             fg_color="transparent"
         )
-        info_boxes_frame.pack(pady=(10, 15), padx=20, fill="x")
+        info_boxes_frame.pack(pady=(10, 15), padx=30, fill="x")
 
-        # Event Info Box (First Box)
+        # Event Info Box with premium styling
         event_box = CTkFrame(
             info_boxes_frame,
-            fg_color="#2C3656",
+            fg_color="#161F33",  # Deeper blue background
             border_width=1,
-            border_color="#4A5567",
-            corner_radius=12,
-            width=240,
-            height=265
+            border_color="#2A3958",
+            corner_radius=15,
+            width=270,
+            height=300
         )
-        event_box.pack(side="left", padx=10, fill="both", expand=True)
+        event_box.pack(side="left", padx=12, fill="both", expand=True)
         event_box.pack_propagate(False)
 
+        # Updated header style with icon space
         event_title_frame = CTkFrame(
             event_box,
-            fg_color="#3A4766",
-            corner_radius=8,
-            height=40
+            fg_color="#1E2842",
+            corner_radius=10,
+            height=48
         )
-        event_title_frame.pack(pady=(15, 10), padx=15, fill="x")
+        event_title_frame.pack(pady=(15, 15), padx=15, fill="x")
 
+        # Icon could be added here
         CTkLabel(
             event_title_frame,
             text="Event Details",
-            font=("Inter", 18, "bold"),
+            font=("Montserrat", 20, "bold"),
             text_color="#FFFFFF"
-        ).pack(pady=5)
+        ).pack(pady=8)
 
-        # Event Info Content
+        # Event Info Content - cleaner layout
         event_info_frame = CTkFrame(event_box, fg_color="transparent")
         event_info_frame.pack(pady=10, padx=20, fill="both", expand=True)
 
         event_details = [
             ("Event No:", str(selected_data.get("event_id", "N/A"))),
-            ("Status:", "UNRECOGNIZED PERSON"),
+            ("Status:", "Blacklisted"),
             ("Start Time:", selected_data.get("start_time", "N/A")),
             ("End Time:", selected_data.get("end_time", "N/A")),
             ("Event Type:", "Alert")
@@ -573,13 +589,13 @@ class NotificationInterface(CTkFrame):
 
         for label, value in event_details:
             row_frame = CTkFrame(event_info_frame, fg_color="transparent")
-            row_frame.pack(fill="x", pady=5)
+            row_frame.pack(fill="x", pady=7)  # More vertical spacing
 
             CTkLabel(
                 row_frame,
                 text=label,
-                font=("Inter", 14, "bold"),
-                text_color="#B0B8C4",
+                font=("Montserrat", 14, "bold"),
+                text_color="#8D96A8",  # Muted label color
                 anchor="w"
             ).pack(side="left", padx=(0, 10))
 
@@ -587,14 +603,16 @@ class NotificationInterface(CTkFrame):
                 CTkLabel(
                     row_frame,
                     text=value,
-                    font=("Inter", 14, "bold"),
+                    font=("Montserrat", 14, "bold"),
                     text_color="#FFFFFF",
-                    fg_color="#FF4B4B",
-                    corner_radius=4,
+                    fg_color="#FF3B5C",  # Rich red
+                    corner_radius=5,
+                    width=80,
+                    height=26
                 ).pack(side="left")
             else:
                 if label == "Start Time:" or label == "End Time:":
-                    font_size = 11
+                    font_size = 13
                     value = str(value)
                 else:
                     font_size = 14
@@ -602,113 +620,131 @@ class NotificationInterface(CTkFrame):
                 CTkLabel(
                     row_frame,
                     text=value,
-                    font=("Inter", font_size),
+                    font=("Montserrat", font_size),
                     text_color="#FFFFFF"
                 ).pack(side="left")
 
-        # Person Image Box (Second Box)
+        # Person Image Box with premium styling
         person_box = CTkFrame(
             info_boxes_frame,
-            fg_color="#2C3656",
+            fg_color="#161F33",
             border_width=1,
-            border_color="#4A5567",
-            corner_radius=12,
-            width=240,
-            height=265
+            border_color="#2A3958",
+            corner_radius=15,
+            width=270,
+            height=290
         )
-        person_box.pack(side="left", padx=10, fill="both", expand=True)
+        person_box.pack(side="left", padx=12, fill="both", expand=True)
         person_box.pack_propagate(False)
 
         # Person Image Section
         person_section = CTkFrame(
             person_box,
             fg_color="transparent",
-            height=130
+            height=140
         )
         person_section.pack(fill="x")
 
         person_title_frame = CTkFrame(
             person_section,
-            fg_color="#3A4766",
-            corner_radius=8,
-            height=40
+            fg_color="#1E2842",
+            corner_radius=10,
+            height=48
         )
-        person_title_frame.pack(pady=(15, 5), padx=15, fill="x")
+        person_title_frame.pack(pady=(15, 12), padx=15, fill="x")
 
         CTkLabel(
             person_title_frame,
             text="Person Image",
-            font=("Inter", 18, "bold"),
+            font=("Montserrat", 20, "bold"),
             text_color="#FFFFFF"
-        ).pack(pady=5)
+        ).pack(pady=8)
 
         bgr_image_of_person = self.convert_rgb_to_bgr(selected_data["captured_img"])
         bgr_image_of_face = self.convert_rgb_to_bgr(selected_data["person_img"])
 
-        # Convert the image to a format suitable for CTkLabel
+
         person_img = ImageTk.PhotoImage(bgr_image_of_person)
         face_img = ImageTk.PhotoImage(bgr_image_of_face)
 
-        # Person Image
+
         if selected_data.get("captured_img"):
-            CTkLabel(
+            img_frame = CTkFrame(
                 person_section,
+                fg_color="#0D1422",
+                corner_radius=8,
+                border_width=1,
+                border_color="#344268"
+            )
+            img_frame.pack(pady=8, padx=15)
+
+            CTkLabel(
+                img_frame,
                 image=person_img,
                 text=""
-            ).pack(pady=5, padx=5)
+            ).pack(pady=8, padx=8)
 
-        # Face Image
+
         face_title_frame = CTkFrame(
             person_section,
-            fg_color="#3A4766",
-            corner_radius=8,
-            height=40
+            fg_color="#1E2842",
+            corner_radius=10,
+            height=48
         )
-        face_title_frame.pack(pady=(15, 5), padx=15, fill="x")
+        face_title_frame.pack(pady=(15, 12), padx=15, fill="x")
 
         CTkLabel(
             face_title_frame,
             text="Face Image",
-            font=("Inter", 18, "bold"),
+            font=("Montserrat", 20, "bold"),
             text_color="#FFFFFF"
-        ).pack(pady=5)
+        ).pack(pady=8)
 
         if selected_data.get("person_img"):
-            CTkLabel(
+            face_frame = CTkFrame(
                 person_section,
+                fg_color="#0D1422",
+                corner_radius=8,
+                border_width=1,
+                border_color="#344268"
+            )
+            face_frame.pack(pady=8, padx=15)
+
+            CTkLabel(
+                face_frame,
                 image=face_img,
                 text=""
-            ).pack(pady=5, padx=5)
+            ).pack(pady=8, padx=8)
 
-        # Person Details Box (Third Box)
+
         details_box = CTkFrame(
             info_boxes_frame,
-            fg_color="#2C3656",
+            fg_color="#161F33",
             border_width=1,
-            border_color="#4A5567",
-            corner_radius=12,
-            width=240,
-            height=265
+            border_color="#2A3958",
+            corner_radius=15,
+            width=270,
+            height=290
         )
-        details_box.pack(side="left", padx=10, fill="both", expand=True)
+        details_box.pack(side="left", padx=12, fill="both", expand=True)
         details_box.pack_propagate(False)
 
         details_title_frame = CTkFrame(
             details_box,
-            fg_color="#3A4766",
-            corner_radius=8,
-            height=40
+            fg_color="#1E2842",
+            corner_radius=10,
+            height=48
         )
-        details_title_frame.pack(pady=(15, 10), padx=15, fill="x")
+        details_title_frame.pack(pady=(15, 15), padx=15, fill="x")
 
         CTkLabel(
             details_title_frame,
             text="Person Details",
-            font=("Inter", 18, "bold"),
+            font=("Montserrat", 20, "bold"),
             text_color="#FFFFFF"
-        ).pack(pady=5)
+        ).pack(pady=8)
 
-        # Person Details Content
+        # Person Details Content - premium spacing and typography
         person_content_frame = CTkFrame(details_box, fg_color="transparent")
         person_content_frame.pack(pady=10, padx=20, fill="both", expand=True)
 
@@ -722,86 +758,92 @@ class NotificationInterface(CTkFrame):
 
         for label, value in person_details:
             row_frame = CTkFrame(person_content_frame, fg_color="transparent")
-            row_frame.pack(fill="x", pady=5)
+            row_frame.pack(fill="x", pady=7)
 
             CTkLabel(
                 row_frame,
                 text=label,
-                font=("Inter", 14, "bold"),
-                text_color="#B0B8C4",
+                font=("Montserrat", 14, "bold"),
+                text_color="#8D96A8",
                 anchor="w"
             ).pack(side="left", padx=(0, 10))
 
             CTkLabel(
                 row_frame,
                 text=value,
-                font=("Inter", 14),
+                font=("Montserrat", 14),
                 text_color="#FFFFFF"
             ).pack(side="left")
 
-        # Acknowledgment Message Frame
         message_frame = CTkFrame(
             self.ack_frame,
             fg_color="transparent"
         )
-        message_frame.pack(pady=(20, 15), padx=20, fill="x")
+
+        message_frame.pack(pady=(20, 15), padx=30, fill="x")
+
+        message_header_frame = CTkFrame(
+            message_frame,
+            fg_color="#1E2842",
+            corner_radius=10,
+            height=48
+        )
+        message_header_frame.pack(fill="x", pady=(0, 15))
 
         CTkLabel(
-            message_frame,
-            text="Acknowledgment Message",
-            font=("", 18, "bold"),
-            anchor="center",
-            justify="center",
+            message_header_frame,
+            text="Security Verification Note",
+            font=("Montserrat", 20, "bold"),
             text_color="#FFFFFF"
-        ).pack(pady=(0, 5), anchor="center")
+        ).pack(pady=8)
 
         self.text_note = CTkTextbox(
             message_frame,
-            width=700,
-            height=100,
-            text_color="black",
-            fg_color="#E0E0E0",
-            font=("Helvetica", 18, "bold"),
-            border_color="#000000",
+            width=840,
+            height=110,
+            text_color="#0F1525",
+            fg_color="#F5F7FA",
+            font=("Montserrat", 16),
+            border_color="#344268",
             border_width=2,
-            corner_radius=8
+            corner_radius=10
         )
         self.text_note.pack(fill="x")
 
-        # Buttons Frame
         frame_buttons = CTkFrame(
             self.ack_frame,
             fg_color="transparent"
         )
-        frame_buttons.pack(pady=(15, 20))
+        frame_buttons.pack(pady=(10, 30))
 
-        # Submit Button
         self.button_submit = CTkButton(
             frame_buttons,
             text="Submit",
-            fg_color="#313A46",
-            hover_color="#5A616B",
-            width=110,
+            #fg_color="#4D7CFE",
+            fg_color="#2A3A7D",
+            hover_color="#4D7CFE",
+            width=100,
             height=35,
             corner_radius=6,
-            font=("", 12, "bold"),
+            font=("Montserrat", 14, "bold"),
             command=self.handle_acknowledgment_submit
         )
-        self.button_submit.pack(side="left", padx=5)
+        self.button_submit.pack(side="left", padx=10, pady=(0, 5))
 
-        # Cancel Button
+        # Cancel Button - premium design
         button_cancel = CTkButton(
             frame_buttons,
-            text="Cancel",
-            fg_color="#6C757D",
-            hover_color="#5A6268",
-            width=110,
+            text="CANCEL",
+            fg_color="#2D3648",  # Dark slate
+            hover_color="#404B5C",
+            width=100,
             height=35,
             corner_radius=6,
-            font=("", 12, "bold"),
+            font=("Montserrat", 14, "bold"),
             command=self.close_acknowledgment_frame
         )
-        button_cancel.pack(side="left", padx=5)
+        button_cancel.pack(side="left", padx=10, pady=(0, 5))  # Adjusted pady to move up
+
         self.text_note.focus_force()
 
         # Keep references to the images to prevent garbage collection
@@ -843,6 +885,8 @@ class NotificationInterface(CTkFrame):
             'status_bg': '#FFEBEE',  # Alert light red background
             'status_accent': '#D50000',  # Vibrant red for alert indicators
             'highlight': '#FFC107',  # Warning yellow for highlights
+            'hover_border': '#FF4081',  # Bright pink for hover border
+            'selected_border': '#C2185B',  # Deeper magenta for selected state
         }
 
         # Create striking card layouts for each alarm
@@ -852,7 +896,7 @@ class NotificationInterface(CTkFrame):
                 spacing_frame = CTkFrame(
                     self.frame_content,
                     fg_color="transparent",
-                    height=12
+                    height=16  # Increased spacing
                 )
                 spacing_frame.pack(fill="x", expand=False)
 
@@ -860,37 +904,56 @@ class NotificationInterface(CTkFrame):
             container_frame = CTkFrame(
                 self.frame_content,
                 fg_color=colors['bg_white'],
-                corner_radius=16,  # Reduced to ensure proper rendering
-                border_width=2,
+                corner_radius=18,
+                border_width=3,
                 border_color=colors['border_light']
             )
-            container_frame.pack(fill="x", expand=True, padx=24, pady=(0, 2))
+            container_frame.pack(fill="x", expand=True, padx=24, pady=(0, 4))
 
             # Main alarm content frame with matching corner radius
             frame_alarm = CTkFrame(
                 container_frame,
                 fg_color=colors['bg_white'],
                 height=250,
-                corner_radius=14,  # Slightly smaller than container for proper nesting
+                corner_radius=16,
             )
-            frame_alarm.pack(fill="x", expand=True, pady=(8, 8), padx=6)  # Added horizontal padding
+            frame_alarm.pack(fill="x", expand=True, pady=(10, 10), padx=8)
             frame_alarm.grid_propagate(False)
             frame_alarm.columnconfigure(1, weight=1)
 
             self.selected_frame = None
 
-            # Create refined event handlers
-            def create_click_handler(vehicle_event_id, frame, index):
+
+            # Create refined event handlers with more pronounced visual effects
+            def create_click_handler(vehicle_event_id, frame, container, index):
                 def handler(event):
                     # Reset all frames to original state
-                    for container in self.frame_content.winfo_children():
-                        if isinstance(container, CTkFrame) and container.winfo_children():
-                            for widget in container.winfo_children():
+                    for main_container in self.frame_content.winfo_children():
+                        if isinstance(main_container, CTkFrame) and main_container.winfo_children():
+                            # Reset container styling
+                            if isinstance(main_container, CTkFrame):
+                                main_container.configure(border_color=colors['border_light'], border_width=3)
+
+                            for widget in main_container.winfo_children():
                                 if isinstance(widget, CTkFrame) and widget.winfo_height() > 10:
                                     widget.configure(fg_color=colors['bg_white'])
 
+                                    # Reset image frames border
+                                    for child in widget.winfo_children():
+                                        if isinstance(child, CTkFrame) and (
+                                                child.grid_info().get('column') == 0 or child.grid_info().get(
+                                                'column') == 2):
+                                            child.configure(border_color=colors['primary'], border_width=2)
+
                     # Apply selection styling
                     frame.configure(fg_color=colors['primary_light'])
+                    container.configure(border_color=colors['selected_border'], border_width=4)
+
+                    # Enhance image frames on selection
+                    for child in frame.winfo_children():
+                        if isinstance(child, CTkFrame) and (
+                                child.grid_info().get('column') == 0 or child.grid_info().get('column') == 2):
+                            child.configure(border_color=colors['selected_border'], border_width=3)
 
                     # Update selected state and activate acknowledge button
                     self.selected_vehicle = vehicle_event_id
@@ -904,39 +967,56 @@ class NotificationInterface(CTkFrame):
 
                 return handler
 
-            def create_hover_enter_handler(frame):
+            def create_hover_enter_handler(frame, container):
                 def handler(event):
                     if self.selected_vehicle and frame == self.selected_vehicle:
                         return
 
-                    # Apply hover effect
+                    # Apply more pronounced hover effect
                     frame.configure(fg_color=colors['bg_light'])
 
-                    # Border highlight effect
-                    if frame.master:
-                        frame.master.configure(border_color=colors['primary'], border_width=2)
+                    # Enhanced border highlight effect with animation-like thickness
+                    container.configure(border_color=colors['hover_border'], border_width=4)
+
+                    # Enhance image frames on hover
+                    for child in frame.winfo_children():
+                        if isinstance(child, CTkFrame) and (
+                                child.grid_info().get('column') == 0 or child.grid_info().get('column') == 2):
+                            child.configure(border_color=colors['hover_border'], border_width=3)
 
                 return handler
 
-            def create_hover_leave_handler(frame, index):
+            def create_hover_leave_handler(frame, container, index):
                 def handler(event):
                     if self.selected_vehicle and frame == self.selected_vehicle:
                         frame.configure(fg_color=colors['primary_light'])
+                        container.configure(border_color=colors['selected_border'], border_width=4)
+
+                        # Keep enhanced image frames on selection
+                        for child in frame.winfo_children():
+                            if isinstance(child, CTkFrame) and (
+                                    child.grid_info().get('column') == 0 or child.grid_info().get('column') == 2):
+                                child.configure(border_color=colors['selected_border'], border_width=3)
                         return
 
-                    # Reset to default state
+                    # Reset to default state with smooth transition
                     frame.configure(fg_color=colors['bg_white'])
 
                     # Reset container styling
-                    if frame.master:
-                        frame.master.configure(border_color=colors['border_light'], border_width=1)
+                    container.configure(border_color=colors['border_light'], border_width=3)
+
+                    # Reset image frames to default
+                    for child in frame.winfo_children():
+                        if isinstance(child, CTkFrame) and (
+                                child.grid_info().get('column') == 0 or child.grid_info().get('column') == 2):
+                            child.configure(border_color=colors['primary'], border_width=2)
 
                 return handler
 
             # Bind sophisticated event handlers
-            click_handler = create_click_handler(data.get("event_id"), frame_alarm, i)
-            hover_enter_handler = create_hover_enter_handler(frame_alarm)
-            hover_leave_handler = create_hover_leave_handler(frame_alarm, i)
+            click_handler = create_click_handler(data.get("event_id"), frame_alarm, container_frame, i)
+            hover_enter_handler = create_hover_enter_handler(frame_alarm, container_frame)
+            hover_leave_handler = create_hover_leave_handler(frame_alarm, container_frame, i)
 
             frame_alarm.bind("<Button-1>", click_handler)
             frame_alarm.bind("<Enter>", hover_enter_handler)
@@ -950,16 +1030,14 @@ class NotificationInterface(CTkFrame):
             photo_path = ImageTk.PhotoImage(bgr_image_of_vehicle)
             captured_img = ImageTk.PhotoImage(bgr_image_of_person)
 
-            # SIMPLIFIED LEFT IMAGE (VEHICLE) DISPLAY
-            # Single frame with border and proper padding
+            # ENHANCED LEFT IMAGE (VEHICLE) DISPLAY
+            # Single frame with thicker border and improved padding
             vehicle_frame = CTkFrame(
                 frame_alarm,
                 fg_color=colors['bg_white'],
-                #fg_color="red",
-                corner_radius=14,
+                corner_radius=16,
                 border_width=2,
                 border_color=colors['primary']
-               # border_color="#000000",
             )
             vehicle_frame.grid(row=0, column=0, sticky="nw", padx=22, pady=50)
 
@@ -969,9 +1047,9 @@ class NotificationInterface(CTkFrame):
                 image=photo_path,
                 text="",
                 fg_color=colors['bg_white'],
-                corner_radius=10,
+                corner_radius=12,
             )
-            label_vehicle.pack(padx=6, pady=6)
+            label_vehicle.pack(padx=8, pady=8)  # Increased padding
 
             # Central information panel
             frame_details = CTkFrame(
@@ -980,92 +1058,161 @@ class NotificationInterface(CTkFrame):
             )
             frame_details.grid(row=0, column=1, sticky="nsew", padx=12, pady=16)
 
-            # Status indicator with enhanced corner radius
+            # Status indicator with enhanced corner radius and border
             status_frame = CTkFrame(
                 frame_details,
                 fg_color=colors['status_bg'],
-                corner_radius=5,  # Increased corner radius
-                height=42,
-                border_width=1,
+                corner_radius=8,  # Increased corner radius
+                height=46,  # Taller status frame
+                border_width=2,  # Thicker border
                 border_color=colors['primary']
             )
-            status_frame.grid(row=0, column=0, columnspan=2, sticky="w",padx=2, pady=(0, 20))
+            status_frame.grid(row=0, column=0, columnspan=2, sticky="w", padx=2, pady=(0, 20))
 
-            # Status indicator dot
+            # Status indicator dot - larger and more prominent
             status_icon = CTkFrame(
                 status_frame,
                 fg_color=colors['status_accent'],
-                width=12,
-                height=12,
-                corner_radius=6
+                width=14,
+                height=14,
+                corner_radius=7
             )
-            status_icon.pack(side="left", padx=(3, 5), pady=2)
+            status_icon.pack(side="left", padx=(6, 8), pady=2)  # Increased padding
 
             # Status label
             CTkLabel(
                 status_frame,
                 text="STATUS:",
-                font=("Helvetica", 12, "bold"),
+                font=("Helvetica", 13, "bold"),  # Slightly larger font
                 text_color=colors['text_medium']
-            ).pack(side="left", padx=(0, 0.1), pady=2)
+            ).pack(side="left", padx=(0, 2), pady=2)
 
             # Status text with warning styling
             event_type_label = CTkLabel(
                 status_frame,
                 text="UNAUTHORIZED PERSON",
-                font=("Helvetica", 12, "bold"),
+                font=("Helvetica", 13, "bold"),  # Consistent with status label
                 text_color=colors['status_accent']
             )
-            event_type_label.pack(side="left", pady=2,padx=4)
+            event_type_label.pack(side="left", pady=2, padx=6)  # Increased padding
 
             # Information grid with security styling
             info_grid = CTkFrame(
                 frame_details,
                 fg_color="transparent"
             )
-            info_grid.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=6)
+            info_grid.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=8)  # Increased padding
             info_grid.columnconfigure(1, weight=1)
             info_grid.columnconfigure(3, weight=1)
 
-            # Information layout - keeping all labels and values the same
-            labels_data = [
-                (0, 0, "Event Number:", data.get("event_id", "Unknown")),
-                (0, 2, "Person Name:", data.get("person_name", "Unknown")),
-                (1, 0, "Person Age:", data.get("age", "Unknown")),
-                (1, 2, "Person Gender:", data.get("gender", "Unknown")),
-                (2, 0, "Start Time:", data.get("start_time", "Unknown")),
-                (2, 2, "End Time:", data.get("end_time", "Unknown"))
-            ]
+            # Event Number
+            label_event_number = CTkLabel(
+                info_grid,
+                text="Event Number      :",
+                font=("Helvetica", 14),
+                text_color=colors['text_medium']
+            )
+            label_event_number.grid(row=0, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
 
-            # Create information fields with enhanced styling
-            for row, col, label_text, value in labels_data:
-                # Label with security-focused typography
-                label_name = CTkLabel(
-                    info_grid,
-                    text=label_text,
-                    font=("Helvetica", 14),
-                    text_color=colors['text_medium']
-                )
-                label_name.grid(row=row, column=col, sticky="w", pady=12, padx=(0 if col == 0 else 28, 6))
+            value_event_number = CTkLabel(
+                info_grid,
+                text=data.get("event_id", "Unknown"),
+                font=("Helvetica", 15, "bold"),
+                text_color=colors['text_dark']
+            )
+            value_event_number.grid(row=0, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
 
-                # Format value with fallback
-                display_value = value if value is not None else "Unknown"
+            # Person Name
+            label_person_name = CTkLabel(
+                info_grid,
+                text="Person Name       :",
+                font=("Helvetica", 14),
+                text_color=colors['text_medium']
+            )
+            label_person_name.grid(row=1, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
 
-                # Value display with more prominent styling
-                label_value = CTkLabel(
-                    info_grid,
-                    text=display_value,
-                    font=("Helvetica", 15, "bold"),
-                    text_color=colors['text_dark']
-                )
-                label_value.grid(row=row, column=col + 1, sticky="w", pady=12)
+            value_person_name = CTkLabel(
+                info_grid,
+                text=data.get("person_name", "Unknown"),
+                font=("Helvetica", 15, "bold"),
+                text_color=colors['text_dark']
+            )
+            value_person_name.grid(row=1, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
 
-            # SIMPLIFIED RIGHT IMAGE (PERSON) DISPLAY
-            # Single frame with border and proper padding
+            # Person Age
+            label_person_age = CTkLabel(
+                info_grid,
+                text="Person Age          :",
+                font=("Helvetica", 14),
+                text_color=colors['text_medium']
+            )
+            label_person_age.grid(row=2, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            value_person_age = CTkLabel(
+                info_grid,
+                text=data.get("age", "Unknown"),
+                font=("Helvetica", 15, "bold"),
+                text_color=colors['text_dark']
+            )
+            value_person_age.grid(row=2, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            # Person Gender
+            label_person_gender = CTkLabel(
+                info_grid,
+                text="Person Gender    :",
+                font=("Helvetica", 14),
+                text_color=colors['text_medium']
+            )
+            label_person_gender.grid(row=3, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            value_person_gender = CTkLabel(
+                info_grid,
+                text=data.get("gender", "Unknown"),
+                font=("Helvetica", 15, "bold"),
+                text_color=colors['text_dark']
+            )
+            value_person_gender.grid(row=3, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            # Start Time
+            label_start_time = CTkLabel(
+                info_grid,
+                text="Start Time            :",
+                font=("Helvetica", 14),
+                text_color=colors['text_medium']
+            )
+            label_start_time.grid(row=4, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            value_start_time = CTkLabel(
+                info_grid,
+                text=data.get("start_time", "Unknown"),
+                font=("Helvetica", 15, "bold"),
+                text_color=colors['text_dark']
+            )
+            value_start_time.grid(row=4, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            # End Time
+            label_end_time = CTkLabel(
+                info_grid,
+                text="End Time     :",
+                font=("Helvetica", 14),
+                text_color=colors['text_medium']
+            )
+            label_end_time.grid(row=5, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            value_end_time = CTkLabel(
+                info_grid,
+                text=data.get("end_time", "Unknown"),
+                font=("Helvetica", 15, "bold"),
+                text_color=colors['text_dark']
+            )
+            value_end_time.grid(row=5, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
+
+            # ENHANCED RIGHT IMAGE (PERSON) DISPLAY
+            # Single frame with thicker border and improved padding
             person_frame = CTkFrame(
                 frame_alarm,
                 fg_color=colors['bg_white'],
-                corner_radius=14,
+                corner_radius=16,
                 border_width=2,
                 border_color=colors['primary']
             )
@@ -1077,15 +1224,15 @@ class NotificationInterface(CTkFrame):
                 image=captured_img,
                 text="",
                 fg_color=colors['bg_white'],
-                corner_radius=10,
+                corner_radius=12,  # Increased corner radius
             )
-            label_plate.pack(padx=6, pady=6)
+            label_plate.pack(padx=8, pady=8)  # Increased padding
 
-            # Bind interaction events to all child widgets
+            # Bind interaction events to all child widgets including container
             widgets_to_bind = [
                 label_vehicle, label_plate, frame_details,
                 event_type_label, status_frame, info_grid,
-                vehicle_frame, person_frame
+                vehicle_frame, person_frame, container_frame
             ]
 
             for widget in widgets_to_bind:

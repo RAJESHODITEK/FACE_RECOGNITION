@@ -19,6 +19,8 @@ class NotificationController:
         self.obj_NotificationInterface = self.obj_Interface.dict_frames["notification"]
         self.obj_NotificationInterface.on_form_ready = self.bind_form_button
         db_data_list = self.obj_core.obj_event.fetch_unrecognized_vehicles()
+        self.obj_NotificationInterface.button_next.configure(command=self.obj_NotificationInterface.handle_next)
+        self.obj_NotificationInterface.button_previous.configure(command=self.obj_NotificationInterface.handle_previous)
 
         self.add_vehicle_data(db_data_list)
 
@@ -63,36 +65,40 @@ class NotificationController:
         self.obj_NotificationInterface.show_acknowledge_dialog()
 
     def onclick_acknowledge_submit(self):
-        if self.obj_NotificationInterface.text_note.get("1.0", "end").strip() != '':
+        note = self.obj_NotificationInterface.text_note.get("1.0", "end").strip()
+
+        if note != '':
             # Debug prints
             print("Selected vehicle info:")
             print(f"Type: {type(self.obj_NotificationInterface.selected_vehicle)}")
             print(f"Value: {self.obj_NotificationInterface.selected_vehicle}")
 
-            # Get the actual event_id
-            event_id = None
-            for vehicle in self.vehicle_data:
-                if vehicle["vehicle_event_id"] == self.obj_NotificationInterface.selected_vehicle:
-                    event_id = vehicle["vehicle_event_id"]
-                    break
-
-            if event_id:
-                print(f"Found event_id: {event_id}")
+            # # Get the actual person_name from selected_vehicle
+            # person_name = None
+            # for vehicle in self.vehicle_data:
+            #     if vehicle["person_name"] == self.obj_NotificationInterface.selected_vehicle:
+            #         person_name = vehicle["person_name"]
+            #         break
+            person_name = self.obj_NotificationInterface.selected_vehicle
+            if person_name:
+                print(f"Found person_name: {person_name}")
                 result = self.obj_event.insert_acknowledgment(
-                    event_id,
-                    self.obj_NotificationInterface.text_note.get("1.0", "end").strip()
+                    person_name,  # Pass person_name instead of event_id
+                    note
                 )
 
                 print(f"Acknowledgment Result: {result}")
 
                 if result:
+                    # Close acknowledgment frame and update list
                     self.obj_NotificationInterface.close_acknowledgment_frame()
                     self.obj_NotificationInterface.handle_acknowledgment_submit()
                     self.obj_NotificationInterface.update_alarm_list()
                 else:
                     print("Failed to insert acknowledgment")
             else:
-                print("Could not find event_id for selected vehicle")
+                print("Could not find person_name for selected vehicle")
+
     # def onclick_submit(self):
     #     acknowledgment_note = self.obj_NotificationInterface.text_note.get("1.0", "end").strip()
     #     acknowledgment_result = self.obj_core.obj_event.insert_acknowledgment(self.obj_NotificationInterface.selected_vehicle, acknowledgment_note)
