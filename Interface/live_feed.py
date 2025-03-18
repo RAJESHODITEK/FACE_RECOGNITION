@@ -19,7 +19,6 @@ from Core.main import Core
 from Core.Recognistion_process.ConfigLoader import ConfigLoader
 from sympy import false
 
-from Interface.home import HomeInInterface
 from shared_queue import shared_queue
 
 
@@ -41,7 +40,6 @@ class LiveEventInterface(CTkFrame):
         self.video_queue = queue.Queue(maxsize=10)
         self.detection_queue = queue.Queue(maxsize=10)
         self.running = True
-        self.restricted_vehicle_caught_signal=False
         self.frame_count = 0
         self.details_frames = []
         # self.audio_manager = AudioThreadManager()
@@ -398,12 +396,6 @@ class LiveEventInterface(CTkFrame):
                     break
 
             current_detections.sort(key=lambda x: x['event_no'], reverse=True)
-
-            if current_detections:
-                if current_detections[0]['alarm'] == 2:
-                    self.restricted_vehicle_caught_signal=True
-
-
 
             for i, detection_info in enumerate(current_detections[:5]):
                 if i >= len(self.details_frames):

@@ -7,7 +7,7 @@ import threading
 import time
 import logging
 
-#from FrameOperation.CameraManager import CameraStateManager
+from FrameOperation.CameraManager import CameraStateManager
 
 
 class CameraRoiInterface(CTkFrame):
@@ -148,8 +148,8 @@ class CameraRoiInterface(CTkFrame):
             self.button_frame,
             text="Save ROI",
             command=self.save_roi,
-            fg_color="#5A616B",
-            hover_color="#313A46",
+            fg_color="#3A36F5",
+            hover_color="#218838",
             font=("Arial", 12, "bold"),
             corner_radius=4,
             state="disabled",
@@ -162,8 +162,8 @@ class CameraRoiInterface(CTkFrame):
             self.button_frame,
             text="Cancel ROI",
             command=self.cancel_roi,
-            fg_color="#6C757D",
-            hover_color="#313A46",
+            fg_color="#DC3545",
+            hover_color="#C82333",
             font=("Arial", 12, "bold"),
             corner_radius=4,
             height=35,
@@ -188,13 +188,13 @@ class CameraRoiInterface(CTkFrame):
         # Initialize frame and ROI
         self.initialize_frame_and_roi()
 
-        #self.camera_manager = CameraStateManager()
+        self.camera_manager = CameraStateManager()
 
     def update_camera_list(self, new_camera_list):
         """Update the camera list and dropdown with new values from database"""
         try:
             self.camera_list = new_camera_list
-            print("Updating camera list with:", new_camera_list)
+            # print("Updating camera list with:", new_camera_list)
 
             # Update dropdown values with checkbox symbols
             self.dropdown_values = [f"☐ {camera}" for camera in self.camera_list.keys()]
@@ -208,7 +208,7 @@ class CameraRoiInterface(CTkFrame):
                 self.status_label.configure(text="No cameras available", text_color="#FF0000")
 
         except Exception as e:
-            print(f"Error updating camera list: {e}")
+            # print(f"Error updating camera list: {e}")
             self.status_label.configure(text="Error updating camera list", text_color="#FF0000")
 
     def initialize_frame_and_roi(self):
@@ -236,7 +236,8 @@ class CameraRoiInterface(CTkFrame):
                         }
                         self.pending_roi_restore = True
             except Exception as e:
-                print(f"Error restoring ROI from database: {e}")
+                pass
+                # print(f"Error restoring ROI from database: {e}")
 
         if not self._initialized:
             # Create a message on the canvas
@@ -261,13 +262,13 @@ class CameraRoiInterface(CTkFrame):
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout)
 
             if result.returncode == 0:
-                print(f"Camera Online: {rtsp_url}")
+                # print(f"Camera Online: {rtsp_url}")
                 return True
             else:
-                print(f"Camera Offline: {rtsp_url}\nError: {result.stderr.decode()}")
+                # print(f"Camera Offline: {rtsp_url}\nError: {result.stderr.decode()}")
                 return False
         except subprocess.TimeoutExpired:
-            print(f"Timeout Expired: {rtsp_url}")
+            # print(f"Timeout Expired: {rtsp_url}")
             return False
 
     def capture_frame(self):
@@ -277,7 +278,7 @@ class CameraRoiInterface(CTkFrame):
             return
 
         try:
-            print(f"Attempting to open RTSP URL: {self.rtsp_url}-----------------------------------------")
+            # print(f"Attempting to open RTSP URL: {self.rtsp_url}-----------------------------------------")
 
             # Check if the RTSP connection is valid
             if not self.is_camera_online(self.rtsp_url):
@@ -290,15 +291,15 @@ class CameraRoiInterface(CTkFrame):
                 self.handle_camera_error("Could not open RTSP stream. Check your network or camera settings.")
                 return
 
-            print("Successfully opened RTSP URL")
+            # print("Successfully opened RTSP URL")
 
             ret, frame = False, None
             max_retries = 3  # Try multiple times before giving up
             for attempt in range(max_retries):
-                print(f"Attempt {attempt + 1}: Trying to read a frame...")
+                # print(f"Attempt {attempt + 1}: Trying to read a frame...")
                 ret, frame = cap.read()
                 if ret and frame is not None:
-                    print("Frame read successfully!")
+                    # print("Frame read successfully!")
                     break
                 time.sleep(0.6)  # Delay between retries
 
@@ -309,7 +310,7 @@ class CameraRoiInterface(CTkFrame):
                 self.handle_camera_error("Could not read frame from camera. Please try again.")
                 return
 
-            print("Successfully read a frame")
+            # print("Successfully read a frame")
 
             # Resize frame to fit the canvas
             canvas_width = self.canvas.winfo_width()
@@ -331,7 +332,7 @@ class CameraRoiInterface(CTkFrame):
 
     def handle_camera_error(self, error_msg):
         """Centralized error handling for camera-related issues"""
-        print(f"Camera capture error: {error_msg}")
+        # print(f"Camera capture error: {error_msg}")
 
         # Set error message and update UI
         self.status_label.configure(text=f"Camera error: {error_msg}", text_color="#FF0000")
@@ -383,7 +384,7 @@ class CameraRoiInterface(CTkFrame):
         """Handle camera change from dropdown"""
         try:
 
-            print("chnage camera name : ",camera_name)
+            # print("chnage camera name : ",camera_name)
             # Remove checkbox symbol to get actual camera name
             # actual_camera = camera_name.split(" ", 1)[1]
             actual_camera=camera_name
@@ -393,7 +394,7 @@ class CameraRoiInterface(CTkFrame):
                     "coords": self.roi_coords,
                     "selected": self.roi_selected
                 }
-                print(f"Saved state for {self.current_camera}: {self._roi_state[self.current_camera]}")
+                # print(f"Saved state for {self.current_camera}: {self._roi_state[self.current_camera]}")
 
             # Update UI to show loading state
             self.status_label.configure(text="Switching camera...", text_color="#FFA500")
@@ -412,7 +413,7 @@ class CameraRoiInterface(CTkFrame):
 
             # After frame is captured, restore ROI state if it exists
             camera_state = self._roi_state.get(actual_camera, {})
-            print(f"Loading state for {actual_camera}: {camera_state}")
+            # print(f"Loading state for {actual_camera}: {camera_state}")
 
             self.roi_coords = camera_state.get("coords")
             self.roi_selected = camera_state.get("selected", False)
@@ -436,7 +437,7 @@ class CameraRoiInterface(CTkFrame):
 
         except Exception as e:
             error_msg = f"Camera switch error: {str(e)}"
-            print(error_msg)
+            # print(error_msg)
             self.status_label.configure(text=error_msg, text_color="#FF0000")
 
     def restore_roi(self):
@@ -482,7 +483,6 @@ class CameraRoiInterface(CTkFrame):
             tags=tags
         )
 
-
     def start_draw(self, event):
         """Start drawing the rectangle"""
         # First check if a camera is selected
@@ -493,16 +493,11 @@ class CameraRoiInterface(CTkFrame):
             )
             return
 
-        # Clear all existing ROIs and temporary shapes
-        self.canvas.delete("roi")
-        self.canvas.delete("temp_roi")
+        if self.roi_selected:
+            self.canvas.delete("roi")
+            self.roi_coords = None
+            self.roi_selected = False
 
-        # Reset ROI state
-        self.roi_coords = None
-        self.roi_selected = False
-        self.save_button.configure(state="disabled")
-
-        # Start new drawing
         self.drawing = True
         self.start_x = event.x
         self.start_y = event.y
@@ -525,12 +520,7 @@ class CameraRoiInterface(CTkFrame):
         """End drawing the rectangle"""
         if self.drawing:
             self.drawing = False
-
-            # Clear any existing ROIs first
-            self.canvas.delete("roi")
-
             x1, y1, x2, y2 = self.canvas.coords(self.temp_rect_id)
-            self.canvas.delete("temp_roi")  # Remove the temporary rectangle
 
             self.roi_coords = (
                 int(min(x1, x2)),
@@ -540,7 +530,7 @@ class CameraRoiInterface(CTkFrame):
             )
             self.roi_selected = True
 
-            # Use the helper method to draw the final ROI
+            # Use the helper method to draw the ROI
             self.rect_id = self._draw_roi_rectangle(*self.roi_coords)
 
             self.save_button.configure(state="normal")
@@ -593,11 +583,11 @@ class CameraRoiInterface(CTkFrame):
                     raise Exception(result["str_error_msg"])
 
                 # Log the saved data
-                print(f"\nSaved ROI coordinates and percentages:")
-                print(f"Frame dimensions: {frame_width}x{frame_height}")
-                print(f"ROI coordinates: ({x1},{y1}),({x2},{y1}),({x1},{y2}),({x2},{y2})")
-                print(f"X-axis percentages: {ROIStartPercentageWidth:.2f}% - {ROIEndPercentageWidth:.2f}%")
-                print(f"Y-axis percentages: {ROIStartPercentageHeight:.2f}% - {ROIEndPercentageHeight:.2f}%")
+                # print(f"\nSaved ROI coordinates and percentages:")
+                # print(f"Frame dimensions: {frame_width}x{frame_height}")
+                # print(f"ROI coordinates: ({x1},{y1}),({x2},{y1}),({x1},{y2}),({x2},{y2})")
+                # print(f"X-axis percentages: {ROIStartPercentageWidth:.2f}% - {ROIEndPercentageWidth:.2f}%")
+                # print(f"Y-axis percentages: {ROIStartPercentageHeight:.2f}% - {ROIEndPercentageHeight:.2f}%")
 
                 # Redraw frame to ensure it's displayed
                 self.display_frame()
@@ -608,7 +598,7 @@ class CameraRoiInterface(CTkFrame):
 
             except Exception as e:
                 self.status_label.configure(text=f"Save error: {str(e)}", text_color="#FF0000")
-                print(f"Error saving ROI: {str(e)}")
+                # print(f"Error saving ROI: {str(e)}")
 
     def cancel_roi(self):
         """Restore the previously saved ROI"""

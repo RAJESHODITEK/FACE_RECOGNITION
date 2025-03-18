@@ -3,9 +3,9 @@ import pyodbc
 from base64 import b64decode
 from numpy import frombuffer, uint8
 from customtkinter import CTkImage
-from cv2 import imdecode, IMREAD_COLOR, cvtColor, COLOR_BGR2RGB
+from cv2 import imdecode, IMREAD_COLOR
 from PIL import Image
-from datetime import datetime
+import datetime
 
 class Event():
 
@@ -16,346 +16,69 @@ class Event():
         self.dict_db_details = dict_db_details
         self.dict_user_data = dict_user_data
 
-    import pyodbc
-
-    def fetch_event_combo_details(self, i_start_index: int, dict_filter_criteria: dict, fetch_mode="standard", page_size=5):
-        """
-        Fetch events with optional filtering criteria.
-
-        Args:
-            i_start_index: Starting index for pagination
-            dict_filter_criteria: Dictionary containing filter criteria
-            fetch_mode: 'standard' or 'combo' to determine behavior
-            page_size: Number of records to return (default 5)
-
-        Returns:
-            Tuple of (list_events, start_date)
-        """
-        list_events = []
+    def fetch_events(self, i_start_index: int, dict_filter_criteria: dict):
+        list_event = []
         start_date = ""
 
         try:
             connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']};PWD={self.dict_db_details['str_password']}"
             connection = pyodbc.connect(connection_string, autocommit=True)
+
             cursor = connection.cursor()
 
-            # Ensure correct database selection
-            cursor.execute(f"USE {self.dict_db_details['str_db_name']};")
+            select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+            cursor.execute(select_db_query)
 
-            # Define base query for both modes
-            base_query = f"""
-                SELECT 
-                    e.event_id,
-                    e.captured_img,
-                    e.start_time,
-                    e.end_time,
-                    e.acknowledgment_time,
-                    e.acknowledgment_message,
-                    -- Show 'Unknown' if no match in personregister
-                    ISNULL(p.full_name, 'Unknown') AS person_name,
-                    CASE 
-                        WHEN p.full_name IS NULL THEN NULL 
-                        ELSE p.age 
-                    END AS person_age,
-                    CASE 
-                        WHEN p.full_name IS NULL THEN NULL 
-                        ELSE p.gender 
-                    END AS person_gender,
-                    CASE 
-                        WHEN p.full_name IS NULL THEN NULL 
-                        ELSE p.status 
-                    END AS status,
-                    CASE 
-                        WHEN p.full_name IS NULL THEN NULL 
-                        ELSE p.photo_path 
-                    END AS photo_path
-                FROM [{self.dict_db_details['str_db_name']}].[dbo].[event_details] e
-                LEFT JOIN [{self.dict_db_details['str_db_name']}].[dbo].[personregister] p
-                ON (
-                    -- Exact full name match
-                    e.person_name = p.full_name 
-                    OR 
-                    -- Match first and last name parts
-                    (
-                        LTRIM(RTRIM(SUBSTRING(e.person_name, 1, CHARINDEX(' ', e.person_name + ' ') - 1))) = 
-                        LTRIM(RTRIM(SUBSTRING(p.full_name, 1, CHARINDEX(' ', p.full_name + ' ') - 1)))
-                        AND 
-                        LTRIM(RTRIM(SUBSTRING(e.person_name, CHARINDEX(' ', e.person_name + ' ') + 1, LEN(e.person_name)))) = 
-                        LTRIM(RTRIM(SUBSTRING(p.full_name, CHARINDEX(' ', p.full_name + ' ') + 1, LEN(p.full_name))))
-                    )
-                )
-            """
+            if (dict_filter_criteria["str_start_timeperiod"] == "" and dict_filter_criteria[
+                "str_end_timeperiod"] == "" and dict_filter_criteria["str_vehicle_number"] == ""):
+                query = f"""SELECT vehicle_img, number_plate_img, vehicle_number, number_plate_color, country, time, status,alarm,acknowledgment_message,acknowledgment_time,event_id
+                            FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
+                            ORDER BY time DESC OFFSET ? ROWS FETCH NEXT 10 ROWS ONLY 
+                         """
+                cursor.execute(query, i_start_index)
+            else:
+                query = f"""SELECT vehicle_img, number_plate_img, vehicle_number, number_plate_color, country, time, status,alarm,acknowledgment_message,acknowledgment_time,event_id
+                            FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
+                            WHERE CAST(time AS DATETIME) BETWEEN ? AND ? AND vehicle_number LIKE ?
+                            ORDER BY time DESC OFFSET ? ROWS FETCH NEXT 10 ROWS ONLY 
+                        """
+                cursor.execute(query, dict_filter_criteria["str_start_timeperiod"],
+                               dict_filter_criteria["str_end_timeperiod"], dict_filter_criteria["str_vehicle_number"],
+                               i_start_index)
 
-            # Build conditions and parameters based on filter criteria and mode
-            conditions = []
-            params = []
-
-            # Standard mode time period filtering
-            if fetch_mode == "standard" and dict_filter_criteria.get(
-                    "str_start_timeperiod") and dict_filter_criteria.get("str_end_timeperiod"):
-                conditions.append("start_time >= ? AND end_time <= ?")
-                str_start_timeperiod = int(
-                    datetime.strptime(dict_filter_criteria["str_start_timeperiod"], "%Y-%m-%d %H:%M:%S.%f").timestamp())
-                str_end_timeperiod = int(
-                    datetime.strptime(dict_filter_criteria["str_end_timeperiod"], "%Y-%m-%d %H:%M:%S.%f").timestamp())
-                params.extend([str_start_timeperiod, str_end_timeperiod])
-
-            # Combo mode person name filtering
-            if fetch_mode == "standard" and dict_filter_criteria.get("str_person_name"):
-                conditions.append("(e.person_name LIKE ? OR p.full_name LIKE ?)")
-                name_pattern = f"%{dict_filter_criteria['str_person_name']}%"
-                params.extend([name_pattern, name_pattern])
-
-
-            if fetch_mode == "combo" and dict_filter_criteria.get("str_gender"):
-                conditions.append("p.gender LIKE ?")
-                params.append(f"%{dict_filter_criteria['str_gender']}%")
-
-            # Build the final query
-            if conditions:
-                base_query += " WHERE " + " AND ".join(conditions)
-
-            # Add pagination
-            base_query += f" ORDER BY e.start_time DESC OFFSET ? ROWS FETCH NEXT {page_size} ROWS ONLY"
-            params.append(i_start_index)
-
-            # Execute query
-            cursor.execute(base_query, *params)
             response = cursor.fetchall()
 
             if response:
-                columns = [column[0] for column in cursor.description]
+                columns = [column[0] for column in cursor.description]  # Fetch column names
                 for data in response:
-                    # Create record dictionary from query results
-                    record_dict = {columns[i]: data[i] for i in range(len(columns))}
+                    if data.vehicle_img != "N/A" and data.number_plate_img != "N/A":
+                        record_dict = {columns[i]: data[i] for i in range(len(columns))}  # Map columns to data
+                        record_dict['time'] = record_dict['time'].replace(microsecond=0)
+                        list_event.append(record_dict)
 
-                    # Format datetime fields if needed (standard mode check)
-                    if fetch_mode == "standard":
-                        for key in ["start_time", "end_time", "acknowledgment_time"]:
-                            if key in record_dict and isinstance(record_dict[key], (str, bytes)):
-                                record_dict[key] = str(record_dict[key]).split('.')[0]
-
-                    # For standard mode, only include records with valid start_time
-                    if fetch_mode != "standard" or record_dict.get("start_time", "N/A") != "N/A":
-                        list_events.append(record_dict)
-
-                # Process images for standard mode
-                if fetch_mode == "standard":
-                    for data in list_events:
-                        data["person_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["person_img"], 200,
-                                                                                             135)
-                        data["captured_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["captured_img"],
+                for data in list_event:
+                    data["vehicle_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["vehicle_img"], 200, 135)
+                    data["number_plate_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["number_plate_img"],
                                                                                                180, 50)
 
-            # Fetch earliest event date (only in standard mode)
-            if fetch_mode == "standard":
                 query = f"""
-                    SELECT TOP 1 CONVERT(varchar, start_time, 105)
-                    FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
-                    ORDER BY start_time ASC
-                """
+                            SELECT TOP 1 FORMAT(time, 'dd-MM-yyyy')
+                            FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
+                            ORDER BY time ASC
+                        """
                 cursor.execute(query)
-                start_date_result = cursor.fetchone()
-                if start_date_result:
-                    start_date = start_date_result[0]
+
+                start_date = (cursor.fetchall())[0][0]
 
         except Exception as e:
-            print(f"Error in fetch_events: {e}")
+            print(e)
 
         finally:
-            if 'cursor' in locals() and cursor:
-                cursor.close()
-            if 'connection' in locals() and connection:
-                connection.close()
+            cursor.close()
+            connection.close()
+        return list_event, start_date
 
-        return list_events, start_date
-
-    def fetch_unrecognized_vehicles(self):
-        """
-        Fetch vehicles with BlackList status from the database.
-        """
-        list_unrecognized_event = []
-        try:
-            print("Starting database connection...")
-            connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']};PWD={self.dict_db_details['str_password']}"
-            print(
-                f"Connection string (without password): DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']}")
-
-            connection = pyodbc.connect(connection_string, autocommit=True)
-            print("Connection established successfully")
-
-            cursor = connection.cursor()
-            print(f"Using database: {self.dict_db_details['str_db_name']}")
-
-            # Ensure correct database selection
-            cursor.execute(f"USE {self.dict_db_details['str_db_name']};")
-
-            # Main query to fetch BlackList status data
-            print("Executing main query to fetch BlackList status data...")
-            query = f"""
-                   SELECT 
-                       ed.event_id,
-                       ed.person_name,
-                       ed.captured_img,
-                       ed.start_time,
-                       ed.end_time,
-                       ed.acknowledgment_time,
-                       ed.acknowledgment_message,
-                       pr.full_name,
-                       pr.age,
-                       pr.gender,
-                       pr.status,
-                       pr.photo_path,
-                       pr.id
-                   FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}] ed
-                   LEFT JOIN [{self.dict_db_details['str_db_name']}].[dbo].[personregister] pr
-                       ON ed.person_name = pr.full_name
-                   WHERE pr.status = 'BlackList'
-               """
-            cursor.execute(query)
-            response = cursor.fetchall()
-            print(f"Main query executed successfully! Retrieved {len(response)} rows.")
-
-            # Extract column names
-            columns = [column[0] for column in cursor.description]
-            print(f"Columns: {columns}")
-
-            # Debugging: Print raw fetched data
-            print("Fetched raw data:")
-            for data in response:
-                print(f"Raw record: {data}")
-                print(f"Start Time: {data[3]}, End Time: {data[4]}")
-
-            # Convert fetched data to list of dictionaries
-            for data in response:
-                record_dict = {columns[i]: data[i] for i in range(len(columns))}
-                print(f"Processing record ID: {record_dict.get('event_id')}")
-
-                print(
-                    f"++++++++++++++++++Fetched start_time: {record_dict.get('start_time')}, end_time: {record_dict.get('end_time')}")
-
-                from datetime import datetime
-
-                # Convert Unix timestamps to readable format
-                try:
-                    if record_dict.get('start_time'):
-                        record_dict['start_time'] = datetime.fromtimestamp(int(record_dict['start_time'])).strftime(
-                            '%Y-%m-%d %H:%M:%S')
-                    if record_dict.get('end_time'):
-                        record_dict['end_time'] = datetime.fromtimestamp(int(record_dict['end_time'])).strftime(
-                            '%Y-%m-%d %H:%M:%S')
-                except Exception as time_error:
-                    print(f"Error converting timestamps: {time_error}")
-
-                print(
-                    f"//////////////////////Converted start_time: {record_dict.get('start_time')}, end_time: {record_dict.get('end_time')}")
-
-                # Check if images exist
-                if record_dict.get("photo_path") is None:
-                    print(f"Warning: photo_path is None for event ID {record_dict.get('event_id')}")
-                if record_dict.get("captured_img") is None:
-                    print(f"Warning: captured_img is None for event ID {record_dict.get('event_id')}")
-
-                # Process images
-                try:
-                    if record_dict.get("photo_path"):
-                        record_dict["person_img"] = self.base64_to_cv2mat_or_pillow_image_converter(
-                            record_dict["photo_path"], 200, 135)
-                        print("Processed person image successfully")
-                    else:
-                        print("Skipping person image conversion - null value")
-                        record_dict["person_img"] = None
-
-                    if record_dict.get("captured_img"):
-                        record_dict["captured_img"] = self.base64_to_cv2mat_or_pillow_image_converter(
-                            record_dict["captured_img"], 320, 270)
-                        print("Processed captured image successfully")
-                    else:
-                        print("Skipping captured image conversion - null value")
-                except Exception as img_error:
-                    print(f"Error processing images: {img_error}")
-
-                # Standardize field names to match frontend expectations
-                record_dict["person_age"] = record_dict.pop("age", None)
-                record_dict["person_gender"] = record_dict.pop("gender", None)
-
-                list_unrecognized_event.append(record_dict)
-
-            print(f"Final processed record count: {len(list_unrecognized_event)}")
-
-        except Exception as e:
-            print(f"Database error: {e}")
-            import traceback
-            traceback.print_exc()
-
-        finally:
-            if 'cursor' in locals() and cursor:
-                cursor.close()
-            if 'connection' in locals() and connection:
-                connection.close()
-            print("Database connection closed")
-
-        return list_unrecognized_event
-
-    def validate_filter_criteria(self, str_start_date: str,
-                                 str_end_date: str,
-                                 str_start_hour: str,
-                                 str_end_hour: str,
-                                 str_start_minute: str,
-                                 str_end_minute: str,
-                                 str_person_name: str,
-                                 str_gender: str = None):
-
-        dict_response = {
-            "str_error_msg_heading": "",
-            "str_error_msg": "",
-            "dict_filter_criteria": {
-                "str_start_timeperiod": "",
-                "str_end_timeperiod": "",
-                "str_person_name": "",
-                "str_gender": ""
-            }
-        }
-
-        start_date = None
-        end_date = None
-
-        if (str_person_name == "All"):
-            str_person_name = "%"
-
-        if (str_gender == "All" or not str_gender):
-            str_gender = "%"
-
-        start_date = datetime.strptime(str_start_date, "%d-%m-%Y")
-        end_date = datetime.strptime(str_end_date, "%d-%m-%Y")
-
-        if (start_date > end_date):
-            dict_response["str_error_msg_heading"] = "Invalid Date Range!"
-            dict_response["str_error_msg"] = "'Starting Date' must be less than 'Ending Date'"
-            return dict_response
-
-        elif (start_date == end_date or str_start_date == str_end_date):
-            if (int(str_start_hour) > int(str_end_hour)):
-                dict_response["str_error_msg_heading"] = "Invalid Time Range!"
-                dict_response["str_error_msg"] = "'Starting Time' must be less than 'Ending Time'"
-                return dict_response
-            elif (int(str_start_hour) == int(str_end_hour)):
-                if (int(str_start_minute) > int(str_end_minute)):
-                    dict_response["str_error_msg_heading"] = "Invalid Time Range!"
-                    dict_response["str_error_msg"] = "'Starting Time' must be less than 'Ending Time'"
-                    return dict_response
-
-        dict_response["dict_filter_criteria"][
-            "str_start_timeperiod"] = f"{start_date.year}-{start_date.month}-{start_date.day} {str_start_hour}:{str_start_minute}:00.000"
-        dict_response["dict_filter_criteria"][
-            "str_end_timeperiod"] = f"{end_date.year}-{end_date.month}-{end_date.day} {str_end_hour}:{str_end_minute}:00.000"
-        dict_response["dict_filter_criteria"]["str_person_name"] = str_person_name
-        dict_response["dict_filter_criteria"]["str_gender"] = str_gender
-
-        return dict_response
-
-
-    def insert_acknowledgment(self, person_name: str, acknowledgment_note: str):
+    def insert_acknowledgment(self, vehicle_number: str, acknowledgment_note: str):
         """
         Insert acknowledgment details for a specific vehicle
         """
@@ -367,7 +90,7 @@ class Event():
             # Print debug info
             print(f"Database: {self.dict_db_details['str_db_name']}")
             print(f"Table: {self.dict_db_details['str_event_details_table']}")
-            print(f"Person Name: {person_name}")
+            print(f"Vehicle Number: {vehicle_number}")
 
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
             cursor.execute(select_db_query)
@@ -378,7 +101,7 @@ class Event():
                 FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
                 WHERE event_id = ?
             """
-            cursor.execute(verify_query, (person_name,))
+            cursor.execute(verify_query, (vehicle_number,))
             count = cursor.fetchone()[0]
             print(f"Found {count} matching records")
 
@@ -395,9 +118,9 @@ class Event():
             """
 
             print("Executing update query...")
-            print(f"Parameters: message='{acknowledgment_note}', event_id='{person_name}'")
+            print(f"Parameters: message='{acknowledgment_note}', event_id='{vehicle_number}'")
 
-            cursor.execute(update_query, (acknowledgment_note, person_name))
+            cursor.execute(update_query, (acknowledgment_note, vehicle_number))
             connection.commit()
 
             print("Update successful")
@@ -415,7 +138,47 @@ class Event():
                 cursor.close()
             if 'connection' in locals():
                 connection.close()
+    def fetch_unrecognized_vehicles(self):
+        """
+        Fetch unacknowledged vehicles, excluding those already acknowledged
+        """
+        list_unrecognized_event = []
+        try:
+            connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.dict_db_details['str_server']};UID={self.dict_db_details['str_username']};PWD={self.dict_db_details['str_password']}"
+            connection = pyodbc.connect(connection_string, autocommit=True)
 
+            cursor = connection.cursor()
+            select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+            cursor.execute(select_db_query)
+
+            query = f"""
+                      SELECT TOP 10 * 
+                      FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
+                      WHERE alarm = 2 
+                      AND acknowledgment_time IS NULL
+                      ORDER BY time DESC
+                   """
+            cursor.execute(query)
+
+            response = cursor.fetchall()
+            columns = [column[0] for column in cursor.description]
+
+            for data in response:
+                record_dict = {columns[i]: data[i] for i in range(len(columns))}
+                list_unrecognized_event.append(record_dict)
+
+            for data in list_unrecognized_event:
+                data["vehicle_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["vehicle_img"], 200, 130)
+                data["number_plate_img"] = self.base64_to_cv2mat_or_pillow_image_converter(data["number_plate_img"],
+                                                                                           180, 50)
+
+        except Exception as e:
+            print(e)
+        finally:
+            cursor.close()
+            connection.close()
+
+        return list_unrecognized_event
 
     def get_data_count(self, dict_filter_criteria: dict):
 
@@ -430,14 +193,9 @@ class Event():
             cursor = connection.cursor()
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
             cursor.execute(select_db_query)
-            if dict_filter_criteria["str_start_timeperiod"] != "" and dict_filter_criteria["str_end_timeperiod"] != "":
-                str_start_timeperiod = int(
-                    datetime.strptime(dict_filter_criteria["str_start_timeperiod"], "%Y-%m-%d %H:%M:%S.%f").timestamp())
-                str_end_timeperiod = int(
-                    datetime.strptime(dict_filter_criteria["str_end_timeperiod"], "%Y-%m-%d %H:%M:%S.%f").timestamp())
 
             if (dict_filter_criteria["str_start_timeperiod"] == "" and dict_filter_criteria[
-                "str_end_timeperiod"] == "" ):
+                "str_end_timeperiod"] == "" and dict_filter_criteria["str_vehicle_number"] == ""):
                 query = f"""SELECT COUNT(*)
                             FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
                          """
@@ -445,10 +203,10 @@ class Event():
             else:
                 query = f"""SELECT COUNT(*)
                             FROM [{self.dict_db_details['str_db_name']}].[dbo].[{self.dict_db_details['str_event_details_table']}]
-                            WHERE start_time  BETWEEN ? AND ? 
+                            WHERE CAST(time AS DATETIME) BETWEEN ? AND ? AND vehicle_number LIKE ?
                          """
-                cursor.execute(query, str_start_timeperiod,
-                               str_end_timeperiod)
+                cursor.execute(query, dict_filter_criteria["str_start_timeperiod"],
+                               dict_filter_criteria["str_end_timeperiod"], dict_filter_criteria["str_vehicle_number"])
 
             result = cursor.fetchone()
             i_data_count = int(result[0])
@@ -477,21 +235,21 @@ class Event():
 
             if search_text:
                 fetch_vehicles_query = f"""
-                    SELECT DISTINCT full_name 
-                    FROM [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
-                    WHERE full_name LIKE ?
+                    SELECT DISTINCT vehicle_number 
+                    FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_event_details_table"]}]
+                    WHERE vehicle_number LIKE ?
                 """
                 cursor.execute(fetch_vehicles_query, f'%{search_text}%')
             else:
                 fetch_vehicles_query = f"""
-                    SELECT DISTINCT full_name 
-                    FROM [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
+                    SELECT DISTINCT vehicle_number 
+                    FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_event_details_table"]}]
                 """
                 cursor.execute(fetch_vehicles_query)
 
             response = cursor.fetchall()
             if response:
-                list_vehicles = [data.full_name for data in response]
+                list_vehicles = [data.vehicle_number for data in response]
         except Exception as e:
             print(e)
         finally:
@@ -499,39 +257,72 @@ class Event():
             connection.close()
         return list_vehicles
 
-    def base64_to_cv2mat_or_pillow_image_converter(self, base64_image, requiredWidth, requiredHeight):
-        try:
-            # Decode the base64 string to raw bytes
-            image_data = b64decode(base64_image)
-            image_array = frombuffer(image_data, dtype=uint8)
+    def validate_filter_criteria(self, str_start_date: str,
+                                 str_end_date: str,
+                                 str_start_hour: str,
+                                 str_end_hour: str,
+                                 str_start_minute: str,
+                                 str_end_minute: str,
+                                 str_vehicle_number: str):
 
-            # Decode as OpenCV image (in BGR format)
-            image_mat = imdecode(image_array, IMREAD_COLOR)
+        dict_response = {
+            "str_error_msg_heading": "",
+            "str_error_msg": "",
+            "dict_filter_criteria": {
+                "str_start_timeperiod": "",
+                "str_end_timeperiod": "",
+                "str_vehicle_number": "",
+            }
+        }
 
-            if image_mat is None:
-                raise ValueError("Failed to decode image")
+        start_date = None
+        end_date = None
 
-            # ✅ Convert BGR to RGB
-            image_mat = cvtColor(image_mat, COLOR_BGR2RGB)
+        if (str_vehicle_number == "All"):
+            str_vehicle_number = "%"
 
-            # ✅ Convert to Pillow image
-            thumbnail_plate = Image.fromarray(image_mat).resize(
-                (requiredWidth, requiredHeight),
-                Image.Resampling.LANCZOS
-            )
+        start_date = datetime.datetime.strptime(str_start_date, "%d-%m-%Y")
+        end_date = datetime.datetime.strptime(str_end_date, "%d-%m-%Y")
 
-            # ✅ Create CTkImage from Pillow image
-            photo = CTkImage(light_image=thumbnail_plate, size=(requiredWidth, requiredHeight))
+        if (start_date > end_date):
+            dict_response["str_error_msg_heading"] = "Invalid Date Range!"
+            dict_response["str_error_msg"] = "'Starting Date' must be less than 'Ending Date'"
+            return dict_response
 
-            return photo
+        elif (start_date == end_date or str_start_date == str_end_date):
+            if (int(str_start_hour) > int(str_end_hour)):
+                dict_response["str_error_msg_heading"] = "Invalid Time Range!"
+                dict_response["str_error_msg"] = "'Starting Time' must be less than 'Ending Time'"
+                return dict_response
+            elif (int(str_start_hour) == int(str_end_hour)):
+                if (int(str_start_minute) > int(str_end_minute)):
+                    dict_response["str_error_msg_heading"] = "Invalid Time Range!"
+                    dict_response["str_error_msg"] = "'Starting Time' must be less than 'Ending Time'"
+                    return dict_response
 
-        except Exception as e:
-            print(f"Error decoding base64 image: {e}")
-            # Return a blank image in case of an error
-            return CTkImage(
-                light_image=Image.new('RGB', (requiredWidth, requiredHeight), color=(200, 200, 200)),
-                size=(requiredWidth, requiredHeight)
-            )
+        dict_response["dict_filter_criteria"][
+            "str_start_timeperiod"] = f"{start_date.year}-{start_date.month}-{start_date.day} {str_start_hour}:{str_start_minute}:00.000"
+        dict_response["dict_filter_criteria"][
+            "str_end_timeperiod"] = f"{end_date.year}-{end_date.month}-{end_date.day} {str_end_hour}:{str_end_minute}:00.000"
+        dict_response["dict_filter_criteria"]["str_vehicle_number"] = str_vehicle_number
+
+        return dict_response
+
+
+    def base64_to_cv2mat_or_pillow_image_converter(self, base64_image,requiredWidth,requiredHeight):
+
+
+        image_data = b64decode(base64_image) #Decode the base64 string to get the raw bytes
+
+        image_array = frombuffer(image_data, dtype=uint8) # Convert the raw bytes to a NumPy array
+
+        image_mat = imdecode(image_array, IMREAD_COLOR) #Decode the NumPy array as an image using OpenCV
+        thumbnail_plate = Image.fromarray(image_mat).resize((requiredWidth, requiredHeight),
+                                                            Image.Resampling.LANCZOS)
+
+        photo = CTkImage(light_image=thumbnail_plate, size=(requiredWidth, requiredHeight))
+
+        return photo
 
     def fetch_vehicle_data_and_count(self, dict_filter_criteria: dict):
         list_filtered_data = []

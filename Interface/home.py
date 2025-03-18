@@ -99,9 +99,9 @@ class HomeInInterface(CTkFrame):
         )
         self.frame_rcol_brow.pack(side="top", fill="both", expand=False)
 
-        img_alpr_logo = CTkImage(Image.open("C:\\Users\\ITLP 93\\Downloads\\Group 302 (6).png"), size=(105, 32))
-        self.label_alpr_logo = CTkLabel(self.frame_lcol_trow, image=img_alpr_logo, text="")
-        self.label_alpr_logo.place(relx=0.47, rely=0.5, anchor="center")
+        # img_alpr_logo = CTkImage(Image.open(".\\Resources\\images\\alpr_logo.png"), size=(105, 32))
+        # self.label_alpr_logo = CTkLabel(self.frame_lcol_trow, image=img_alpr_logo, text="")
+        # self.label_alpr_logo.place(relx=0.5, rely=0.5, anchor="center")
 
         self.button_live_event = self.create_menu_buttons(self.frame_lcol_mrow,
                                                           ".\\Resources\\images\\live_event_icon.png", "Live Event",
@@ -110,14 +110,14 @@ class HomeInInterface(CTkFrame):
                                                                 ".\\Resources\\images\\historical_event_icon.png",
                                                                 "Historical Event", i_img_width=19, i_img_height=19)
         self.button_add_vehicle = self.create_menu_buttons(self.frame_lcol_mrow,
-                                                           ".\\Resources\\images\\add_vehicle_icon.png", "Add Person",
+                                                           ".\\Resources\\images\\add_vehicle_icon.png", "Add Vehicle",
                                                            i_padx=(6, 5))
         # self.button_vehicle_list = self.create_menu_buttons(self.frame_lcol_mrow,
         #                                                     ".\\Resources\\images\\vehicle_list_icon.png",
         #                                                     "Show Vehicle", i_padx=(6, 5))
         self.button_delete_vehicle = self.create_menu_buttons(self.frame_lcol_mrow,
                                                               ".\\Resources\\images\\delete_vehicle_icon.png",
-                                                              "Delete Person", i_padx=(6, 5))
+                                                              "Delete Vehicle", i_padx=(6, 5))
 
 
         self.button_settings = self.create_menu_buttons(
@@ -152,7 +152,7 @@ class HomeInInterface(CTkFrame):
         self.btn_vehicle_manager = self.create_menu_buttons(
             self.frame_lcol_mrow,
             ".\\Resources\\images\\vehicle_list_icon.png",
-            "Vehicle Manager",
+            "Person Manager",
             i_img_width=17,
             i_img_height=17,
             i_padx=(25, 5),
@@ -209,18 +209,18 @@ class HomeInInterface(CTkFrame):
         )
         self.frame_rcol_trow_col0.grid(row=0, column=0, sticky="nsew")
 
-        # img_menu_icon = CTkImage(Image.open(".\\Resources\\images\\menu_icon.png"), size=(35, 35))
-        # self.button_menu = CTkButton(
-        #     self.frame_rcol_trow_col0,
-        #     image=img_menu_icon,
-        #     width=35,
-        #     text="",
-        #     fg_color="#FFFFFF",
-        #     hover=False,
-        #     cursor="hand2",
-        #     anchor="w",
-        # )
-        # self.button_menu.pack(side="left", padx=(10, 0))
+        img_menu_icon = CTkImage(Image.open(".\\Resources\\images\\menu_icon.png"), size=(35, 35))
+        self.button_menu = CTkButton(
+            self.frame_rcol_trow_col0,
+            image=img_menu_icon,
+            width=35,
+            text="",
+            fg_color="#FFFFFF",
+            hover=False,
+            cursor="hand2",
+            anchor="w",
+        )
+        self.button_menu.pack(side="left", padx=(10, 0))
 
         self.frame_camera = CTkFrame(
             self.frame_rcol_trow_col0,
@@ -301,7 +301,7 @@ class HomeInInterface(CTkFrame):
         self.label_alpr_heading = CTkLabel(
             self.frame_rcol_trow,
             height=i_trow_height,
-            text="      Face Recognition",
+            text="Face Recognition",
             text_color="#2C2C2C",
             font=("Segoe UI", 22, "bold")
         )
@@ -314,7 +314,7 @@ class HomeInInterface(CTkFrame):
         )
         self.frame_rcol_trow_col2.grid(row=0, column=2, sticky="nsew")
 
-        img_user_icon = CTkImage(Image.open(".\\Resources\\images\\user_icon2.png"), size=(27, 27))
+        img_user_icon = CTkImage(Image.open(".\\Resources\\images\\user_icon.png"), size=(22, 22))
         self.button_user = CTkButton(
             self.frame_rcol_trow_col2,
             image=img_user_icon,
@@ -326,37 +326,17 @@ class HomeInInterface(CTkFrame):
         )
         self.button_user.pack(side="right", padx=(0, 10))
 
-        # Create a frame for the notification button and dot
-        self.notification_button_frmae = CTkLabel(self.frame_rcol_trow_col2, text="")
-        self.notification_button_frmae.pack(side="right")
-
-        # Load Notification Icon
-        img_notification_icon = CTkImage(Image.open(".\\Resources\\images\\bell.png"), size=(30, 30))
-
-        # Notification Button
+        img_notification_icon = CTkImage(Image.open(".\\Resources\\images\\notification_bell_icon.png"), size=(21, 25))
         self.button_notification = CTkButton(
-            self.notification_button_frmae,
+            self.frame_rcol_trow_col2,
             image=img_notification_icon,
-            width=30,
-            height=30,
+            width=21,
             text="",
             fg_color="transparent",
             hover=False,
             cursor="hand2"
         )
-        self.button_notification.grid(row=0, column=0, sticky="nw")
-
-        # Green Dot (Notification Indicator)
-        self.dot_label = CTkLabel(
-            self.notification_button_frmae,
-            height=6,
-            width=10,
-            text="",
-            font=("Arial", 18, "bold"),
-            text_color="green",
-            fg_color=self.notification_button_frmae.cget("fg_color"),
-        )
-        self.dot_label.grid(row=0, column=0, sticky="ne", padx=4, pady=0)
+        self.button_notification.pack(side="right")
 
         self.frame_user_popup = CTkFrame(
             self.frame_rcol_mrow,
@@ -402,7 +382,7 @@ class HomeInInterface(CTkFrame):
             image=img_edit_icon,
             text="Edit Profile",
             fg_color="transparent",
-            text_color="#94A8BF",
+            text_color="#FFFFFF",
             hover=False,
             font=("", 14,),
             cursor="hand2",
@@ -416,7 +396,7 @@ class HomeInInterface(CTkFrame):
             image=img_new_user_icon,
             text="New User",
             fg_color="transparent",
-            text_color="#94A8BF",
+            text_color="#FFFFFF",
             hover=False,
             font=("", 14,),
             cursor="hand2",
@@ -430,7 +410,7 @@ class HomeInInterface(CTkFrame):
             image=img_logout_icon_2,
             text="Logout",
             fg_color="transparent",
-            text_color="#94A8BF",
+            text_color="#FFFFFF",
             hover=False,
             font=("", 14,),
             cursor="hand2",
@@ -577,9 +557,6 @@ class HomeInInterface(CTkFrame):
         if (label_error is not None):
             label_error.configure(text=str_error)
         self.update()
-#----------------------------------------------------------------------------------
-    # Please don't remove the changes as suggested by Rajesh Sir!! ---STARTING---
-#----------------------------------------------------------------------------------
 
     def toggle_menu_bar(self):
         if (self.bool_toggle_menu_bar == True):
@@ -599,7 +576,7 @@ class HomeInInterface(CTkFrame):
             self.button_delete_vehicle.configure(text="", anchor="center")
             # self.button_settings.configure(text="", anchor="center")
             self.button_settings.configure(text="", anchor="center")
-           # self.camera_manager.configure(text="", anchor="center")
+            self.camera_manager.configure(text="", anchor="center")
 
 
 
@@ -633,34 +610,8 @@ class HomeInInterface(CTkFrame):
         self.bool_toggle_menu_bar = not self.bool_toggle_menu_bar
 
 
-
-    def update_profile_icon_menu_button_state(self,option ):
-        profile_menu_buttons = {
-            self.button_create_user,
-            self.button_edit
-        }
-        if option == 'new_user':
-            self.button_create_user.configure(text_color='#FFFFFF')
-            self.button_edit.configure(text_color='#94A8BF')
-        elif option == 'edit_user':
-            self.button_create_user.configure(text_color='#94A8BF')
-            self.button_edit.configure(text_color='#FFFFFF')
-        else:
-            self.button_create_user.configure(text_color='#94A8BF')
-            self.button_edit.configure(text_color='#94A8BF')
-
-
-
-
-
-
-
-
     def toggle_user_popup(self):
         if (self.bool_user_popup is False):  # Popup is closed, need to opened it
-            # Reset any highlighted menu items when opening user popup
-            #self.reset_menu_highlight()
-
             self.frame_user_popup.configure(width=170)
             self.frame_user_popup.grid_propagate(False)
             self.frame_user_popup.grid(column=0, row=0, sticky="ne")
@@ -682,9 +633,11 @@ class HomeInInterface(CTkFrame):
             self.button_live_event,
             self.button_historical_event,
             self.button_add_vehicle,
+            # self.button_vehicle_list,
             self.button_delete_vehicle,
-            self.button_notification,
-            self.button_user
+            # self.button_settings,
+            # self.camera_manager
+
         }
 
         # If clicking a main menu button, reset settings state
@@ -692,11 +645,12 @@ class HomeInInterface(CTkFrame):
             self.reset_settings_state()
 
         if self.button_old_selected is not None:
-            # Reset old button state to default gray color for both main menu and submenu buttons
-            self.button_old_selected.configure(
-                fg_color="transparent",
-                text_color="#94A8BF"
-            )
+            # Reset old button state
+            if self.button_old_selected not in {self.button_edit, self.button_create_user}:
+                self.button_old_selected.configure(
+                    fg_color="transparent",
+                    text_color="#94A8BF"
+                )
 
         # Highlight the clicked button
         button_menu.configure(
@@ -706,25 +660,12 @@ class HomeInInterface(CTkFrame):
 
         # Handle settings submenu highlighting
         if button_menu in settings_submenu:
-            # Keep settings button highlighted
             self.button_settings.configure(
                 fg_color="#2F3A5F",
                 text_color="#FFFFFF"
             )
 
         self.button_old_selected = button_menu
-
-    def reset_menu_highlight(self):
-        """Reset all menu button highlights including settings"""
-        if self.button_old_selected:
-            self.button_old_selected.configure(
-                fg_color="transparent",
-                text_color="#94A8BF"
-            )
-            self.button_old_selected = None
-
-        # Also reset settings button and its state
-        self.reset_settings_state()
 
     def reset_settings_state(self):
         """Reset settings button and submenus to default state"""
@@ -741,9 +682,6 @@ class HomeInInterface(CTkFrame):
         self.button_camera_settings.pack_forget()
         self.btn_vehicle_manager.pack_forget()
         self.button_audio_settings.pack_forget()
-
-
-
     def update_user_popup_data(self, str_username: str):
         self.label_user_name.configure(text=str_username)
 

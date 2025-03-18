@@ -13,8 +13,8 @@ class AudioController:
         if not cls._instance:
             cls._instance = super(AudioController, cls).__new__(cls, *args, **kwargs)
             pygame.mixer.init()
-            #cls._instance.audio_file = 'Resources/audio/track1.wav'
-#            cls._instance.sound = pygame.mixer.Sound(cls._instance.audio_file)
+            cls._instance.audio_file = 'Resources/audio/track1.wav'
+            cls._instance.sound = pygame.mixer.Sound(cls._instance.audio_file)
             cls._instance.volume = 1.0
             cls._instance.is_playing = False
             cls._instance.is_muted = False

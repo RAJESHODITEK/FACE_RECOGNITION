@@ -1,5 +1,4 @@
 from Core.main import Core
-from FlowControl.home import HomeController
 from Interface.main import Interface
 from time import sleep
 
@@ -10,7 +9,6 @@ class SignInController:
         self.obj_Core = Core
         self.obj_Interface = Interface
         self.obj_SigninInterface = self.obj_Interface.dict_frames["signin"]
-        self.obj_HomeController= HomeController(Core,Interface)
 
         self.bind_buttons()
         self.bind_enter_key()
@@ -49,15 +47,11 @@ class SignInController:
                 self.obj_Interface.switch_frames("home")
 
                 i_camera_count = self.obj_Core.obj_Camera.get_camera_count()
-                # i_camera_count = 0
                 if (i_camera_count > 0):
                     self.obj_Interface.switch_frames("live_feed")
-                    self.obj_Interface.dict_frames['home'].update_menu_buttons_state(
-                        self.obj_Interface.dict_frames['home'].button_live_event)
                     self.obj_Interface.dict_frames["home"].show_frame_camera()
                 else:
-                    self.obj_HomeController.onclick_settings_button()
-                    self.obj_Interface.dict_frames['home'].button_camera_settings.invoke()
+                    self.obj_Interface.switch_frames("camera_manager")
 
             else:
                 self.obj_Interface.on_error("signin", dict_status["str_error_msg_heading"],

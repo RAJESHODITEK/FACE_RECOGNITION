@@ -1,4 +1,3 @@
-
 from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, CTkCanvas, StringVar
 
 
@@ -94,7 +93,7 @@ class EditUserInterface(CTkFrame):
             height=38,
             text="Update Profile",
             text_color="#FFFFFF",
-            fg_color="#5A616B",
+            fg_color="#3A36F5",
             border_color="#3A36F5",
             font=("", 14),
             cursor="hand2",
@@ -106,7 +105,7 @@ class EditUserInterface(CTkFrame):
             self.frame_form,
             height=38,
             width=100,
-            text="Reset",
+            text="reset",
             text_color="#FFFFFF",
             fg_color="#6C757D",
             border_color="#6C757D",

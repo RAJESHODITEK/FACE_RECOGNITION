@@ -1,3 +1,5 @@
+from functools import partial
+
 from Core.main import Core
 from Interface.main import Interface
 import datetime
@@ -17,14 +19,12 @@ class HistoricalEventController:
         self.bind_label_image()
         self.bind_buttons()
 
-
     def bind_label_image(self):
         if self.obj_HistoricalEventInterface.current_vehicle_id != self.prev_id:
             self.obj_Interface.dict_frames["notification"].selected_vehicle = self.obj_HistoricalEventInterface.current_vehicle_id
-            self.obj_HistoricalEventInterface.show_acknowledge_dialog(self.obj_core.obj_Vehicle.fetch_single_vehicle_data(self.obj_HistoricalEventInterface.current_vehicle_number)['vehicle_data'],personimg=self.obj_HistoricalEventInterface.current_person_image, capturedimg=self.obj_HistoricalEventInterface.current_captured_image,event_data=self.obj_HistoricalEventInterface.current_event_details, eventType=self.obj_HistoricalEventInterface.eventType)
+            self.obj_HistoricalEventInterface.show_acknowledge_dialog(self.obj_core.obj_Vehicle.fetch_single_vehicle_data(self.obj_HistoricalEventInterface.current_vehicle_number)['vehicle_data'],vehicleimg=self.obj_HistoricalEventInterface.current_vehicle_image, plateimg=self.obj_HistoricalEventInterface.current_plate_image,event_data=self.obj_HistoricalEventInterface.current_event_details)
             self.obj_HistoricalEventInterface.current_vehicle_id=""
         self.obj_HistoricalEventInterface.after(100, self.bind_label_image)
-
 
 
     def bind_buttons(self):
@@ -38,20 +38,7 @@ class HistoricalEventController:
         self.obj_HistoricalEventInterface.button_previous.configure(command=self.onclick_previous)
         self.obj_HistoricalEventInterface.on_form_ready = self.bind_add_popup_buttons
 
-
-    def on_window_restored(self):
-        try:
-            self.obj_HomeInterface = self.obj_Interface.dict_frames["home"]
-
-            if 'historical_event' in self.obj_Interface.dict_frames and hasattr(
-                    self.obj_Interface.dict_frames['historical_event'], 'ack_window'):
-                self.obj_Interface.obj_RootInterface.deiconify()
-        except Exception as e:
-            print(e)
-
     def bind_add_popup_buttons(self):
-        self.obj_HistoricalEventInterface.ack_window.bind("<Map>", lambda event: self.on_window_restored())
-
         try:
             if (hasattr(self.obj_HistoricalEventInterface, 'add_vehicle_button') and
                     self.obj_HistoricalEventInterface.add_vehicle_button is not None):
@@ -146,7 +133,6 @@ class HistoricalEventController:
         str_end_minute = self.obj_HistoricalEventInterface.spinbox_eminute.get()
         str_vehicle_number = self.obj_HistoricalEventInterface.entry_selected_vehicle.get()
 
-
         self.obj_HistoricalEventInterface.reset_interface()
 
         dict_response = self.obj_core.obj_event.validate_filter_criteria(str_start_date, str_end_date,
@@ -162,14 +148,12 @@ class HistoricalEventController:
             self.obj_HistoricalEventInterface.dict_filter_criteria = dict_response["dict_filter_criteria"]
             self.obj_HistoricalEventInterface.i_total_data = self.obj_core.obj_event.get_data_count(
                 self.obj_HistoricalEventInterface.dict_filter_criteria)
-            self.obj_HistoricalEventInterface.i_start_index=0
             list_historical_events, self.obj_Interface.dict_frames[
-                "historical_event"].event_starting_date = self.obj_core.obj_event.fetch_event_combo_details(
-                self.obj_HistoricalEventInterface.i_start_index, self.obj_HistoricalEventInterface.dict_filter_criteria)
-
+                "historical_event"].event_starting_date = self.obj_core.obj_event.fetch_events(
+                self.obj_HistoricalEventInterface.i_end_index, self.obj_HistoricalEventInterface.dict_filter_criteria)
             i_total_data_fetched = len(list_historical_events)
-            self.obj_HistoricalEventInterface.i_total_data= self.obj_core.obj_event.get_data_count(self.obj_HistoricalEventInterface.dict_filter_criteria)
             if (i_total_data_fetched > 0):
+                self.obj_HistoricalEventInterface.i_start_index = 1
                 self.obj_HistoricalEventInterface.i_end_index += i_total_data_fetched
             self.obj_HistoricalEventInterface.update_table(list_historical_events)
         else:
@@ -187,61 +171,38 @@ class HistoricalEventController:
             self.obj_HistoricalEventInterface.toggle_filter_popup()
 
     def onclick_next(self):
-
-        self.obj_HistoricalEventInterface.i_start_index =  self.obj_HistoricalEventInterface.i_start_index + 5
-        print(f"###################______________data from {self.obj_HistoricalEventInterface.i_start_index} to {self.obj_HistoricalEventInterface.i_start_index+4}")
-        # # Close filter popup if it's open
-        if self.obj_HistoricalEventInterface.bool_filter_popup is True:
+        if (self.obj_HistoricalEventInterface.bool_filter_popup is True):
             self.obj_HistoricalEventInterface.close_dropdown(None)
             self.obj_HistoricalEventInterface.reset_filter_form()
             self.obj_HistoricalEventInterface.toggle_filter_popup()
-        #
-        # # Calculate the next starting index
-        # next_start_index = self.obj_HistoricalEventInterface.i_end_index + 1
-        #
-        # # Fetch exactly 5 items (or whatever is available)
+
         list_historical_events, self.obj_Interface.dict_frames[
-            "historical_event"].event_starting_date = self.obj_core.obj_event.fetch_event_combo_details(
-            self.obj_HistoricalEventInterface.i_start_index, self.obj_HistoricalEventInterface.dict_filter_criteria)
-
+            "historical_event"].event_starting_date = self.obj_core.obj_event.fetch_events(
+            self.obj_HistoricalEventInterface.i_end_index, self.obj_HistoricalEventInterface.dict_filter_criteria)
         i_data_count = len(list_historical_events)
+        if (i_data_count > 0):
+            self.obj_HistoricalEventInterface.i_start_index = self.obj_HistoricalEventInterface.i_end_index + 1
+            self.obj_HistoricalEventInterface.i_end_index = self.obj_HistoricalEventInterface.i_end_index + i_data_count
 
-        # Only update if we have data
-        if i_data_count > 0:
-            self.obj_HistoricalEventInterface.i_end_index = self.obj_HistoricalEventInterface.i_start_index + i_data_count - 1
             self.obj_HistoricalEventInterface.update_table(list_historical_events)
 
-
     def onclick_previous(self):
-        if self.obj_HistoricalEventInterface.i_start_index >0:
-            self.obj_HistoricalEventInterface.i_start_index = self.obj_HistoricalEventInterface.i_start_index - 5
-            self.obj_HistoricalEventInterface.i_end_index = self.obj_HistoricalEventInterface.i_end_index - 5
-            print(
-                f"###################______________data from {self.obj_HistoricalEventInterface.i_start_index} to {self.obj_HistoricalEventInterface.i_start_index+4}")
-        # Close filter popup if it's open
-        if self.obj_HistoricalEventInterface.bool_filter_popup is True:
+        if (self.obj_HistoricalEventInterface.bool_filter_popup is True):
             self.obj_HistoricalEventInterface.close_dropdown(None)
             self.obj_HistoricalEventInterface.reset_filter_form()
             self.obj_HistoricalEventInterface.toggle_filter_popup()
-        #
-        # # Calculate the previous starting index (ensuring we go back exactly 5 items)
-        # previous_start_index = self.obj_HistoricalEventInterface.i_start_index - 5
-        #
-        # # Ensure we don't go below index 1 (assuming your indexing starts at 1)
-        # if previous_start_index < 1:
-        #     previous_start_index = 1
-        #
-        # # Fetch exactly 5 items (or whatever is available)
+
+        i_start_index = self.obj_HistoricalEventInterface.i_start_index - 10
+        if (i_start_index < 0):
+            i_start_index = 1
         list_historical_events, self.obj_Interface.dict_frames[
-            "historical_event"].event_starting_date = self.obj_core.obj_event.fetch_event_combo_details(
-            self.obj_HistoricalEventInterface.i_start_index, self.obj_HistoricalEventInterface.dict_filter_criteria)
-
+            "historical_event"].event_starting_date = self.obj_core.obj_event.fetch_events(i_start_index,
+                                                                                           self.obj_HistoricalEventInterface.dict_filter_criteria)
         i_data_count = len(list_historical_events)
+        if (i_data_count > 0):
+            self.obj_HistoricalEventInterface.i_start_index = i_start_index
+            self.obj_HistoricalEventInterface.i_end_index = (i_start_index + i_data_count) - 1
 
-        # Only update if we have data
-        if i_data_count > 0:
-
-            self.obj_HistoricalEventInterface.i_end_index = self.obj_HistoricalEventInterface.i_start_index + i_data_count - 1
             self.obj_HistoricalEventInterface.update_table(list_historical_events)
 
 
@@ -294,3 +255,8 @@ class HistoricalEventController:
 
         }
         print( " data format " , dict_filter_criteria)
+
+        entry, exit, balance = self.obj_core.obj_event.fetch_vehicle_data_and_count(dict_filter_criteria)
+        self.obj_HistoricalEventInterface.label_Entry_count_value.configure(text=entry)
+        self.obj_HistoricalEventInterface.label_Exit_count_value.configure(text=exit)
+        self.obj_HistoricalEventInterface.label_Balance_count_value.configure(text=balance)

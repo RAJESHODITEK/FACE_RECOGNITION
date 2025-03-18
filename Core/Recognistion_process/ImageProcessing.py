@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
+from logger import LoggerUtility
 
 
 class ImageProcessing:

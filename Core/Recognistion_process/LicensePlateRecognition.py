@@ -8,7 +8,7 @@ import base64
 
 from Core.Recognistion_process.LicensePlateColorDetector import LicensePlateColorDetector
 from Core.Recognistion_process.ConfigLoader import ConfigLoader
-
+from logger import LoggerUtility
 
 
 class LicensePlateRecognition:
@@ -16,7 +16,7 @@ class LicensePlateRecognition:
         self.configloader=ConfigLoader("Config/config.json")
         self.license_plate_model = YOLO(self.configloader.get("model_details.license_plate_detection_model_path"))
         self.ocr = PaddleOCR(use_angle_cls=self.configloader.get('ocr_details.use_angle_cls'), lang=self.configloader.get('ocr_details.lang'))
-
+        self.logger_utility = LoggerUtility()
 
 
     def check_plate_format(self, input_string):

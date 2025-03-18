@@ -10,9 +10,8 @@ class SignInInterface(CTkFrame):
         self.configure(fg_color="#FFFFFF")
         self.show_password = False
 
-        show_password_icon_path = "Resources/images/show_password.png"
-        hide_password_icon_path = "Resources/images/hide_password.png"
-
+        show_password_icon_path = "D:\\FR\\myenv\\Resources\\images\\show_password.png"
+        hide_password_icon_path = "D:\\FR\\myenv\\Resources\\images\\show_password.png"
 
 
         # Store both eye icons
@@ -23,7 +22,7 @@ class SignInInterface(CTkFrame):
         self.columnconfigure(1, weight=1, uniform='a')
         self.rowconfigure(0, weight=1)
 
-        self.img_signin_bg_original = Image.open("C:\\Users\\ITLP 93\\Downloads\\10450541.png")
+        self.img_signin_bg_original = Image.open(".\\Resources\\images\\welcome_bg_img.png")
         self.img_signin_bg_display = None
 
         self.cnv_image = Canvas(self, bd=0, highlightthickness=0, relief='ridge')

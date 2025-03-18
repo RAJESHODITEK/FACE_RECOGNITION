@@ -10,7 +10,6 @@ from numpy import frombuffer
 import pyodbc
 import datetime
 
-
 class Vehicle():
 
     def __init__(self, dict_db_details, dict_user_data):
@@ -35,62 +34,65 @@ class Vehicle():
 
         return tkinter_image
 
-    def add_vehicle(self, str_first_name: str, str_middle_name: str, str_last_name: str,
-                    str_age: int, str_gender: str, str_status: str,
-                    str_photo_path: str):
-        print("db is here ")
-        dict_status = {
-            "str_error_msg_heading": "",
-            "str_error_msg": ""
-        }
-        try:
-            print("db is connected")
-            # Connect to the database
-            connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+
+    def add_vehicle(self, str_first_name: str, str_middle_name:str,str_last_name: str,
+               str_age: int, str_gender: str, str_status: str,
+               str_photo_path: str):
+            print("db is here ")
+            dict_status = {
+                "str_error_msg_heading": "",
+                "str_error_msg": ""
+            }
+            try:
+                print("db is connected")
+                # Connect to the database
+                connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                                 SERVER={self.dict_db_details["str_server"]};
                                                 UID={self.dict_db_details["str_username"]};
-                                                PWD={self.dict_db_details["str_password"]}""",
-                                        autocommit=True)
-            cursor = connection.cursor()
+                                                PWD={self.dict_db_details["str_password"]}""", 
+                                                autocommit=True)
+                cursor = connection.cursor()
+                
+                # Select the database
+                select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+                cursor.execute(select_db_query)
+                if(str_middle_name==""):
+                    full_name=str_first_name+" "+str_last_name
+                else:
+                  full_name = str_first_name +" "+str_middle_name +" " + str_last_name
 
-            # Select the database
-            select_db_query = f"USE {self.dict_db_details['str_db_name']};"
-            cursor.execute(select_db_query)
 
-            # Combine first and last name for full name
-            full_name = str_first_name + " " + str_middle_name + " " + str_last_name
-
-            # Insert query for the personregister table
-            insert_query = f"""INSERT INTO [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
+                # Insert query for the personregister table
+                insert_query = f"""INSERT INTO [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
                                     (full_name, age, gender, status, photo_path)
                                     VALUES (?, ?, ?, ?, ?)
                                 """
-            # Execute the insert query
-            print("data is in insert query")
-            cursor.execute(insert_query, full_name, int(str_age), str_gender, str_status, str_photo_path)
-            print("db is inserted ")
-
-            # Success message (could be optional)
-            dict_status["str_error_msg_heading"] = "Success"
-            dict_status["str_error_msg"] = "Person successfully added."
-
-        except pyodbc.Error as e:
-            print(e)
-            if e.args[0] == '23000' and "duplicate" in e.args[1]:
-                dict_status["str_error_msg_heading"] = "Error! Duplicate Entries"
-                dict_status["str_error_msg"] = "Duplicate person not allowed."
-            else:
+                # Execute the insert query
+                print("data is in insert query")
+                cursor.execute(insert_query, full_name, int(str_age), str_gender, str_status, str_photo_path)
+                print("db is inserted ")
+                
+                # Success message (could be optional)
+                dict_status["str_error_msg_heading"] = "Success"
+                dict_status["str_error_msg"] = "Person successfully added."
+            
+            except pyodbc.Error as e:
+                print(e)
+                if e.args[0] == '23000' and "duplicate" in e.args[1]:
+                    dict_status["str_error_msg_heading"] = "Error! Duplicate Entries"
+                    dict_status["str_error_msg"] = "Duplicate person not allowed."
+                else:
+                    dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+                    dict_status["str_error_msg"] = "Something went wrong. Please verify the inputs and try again."
+            except Exception as e:
                 dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-                dict_status["str_error_msg"] = "Something went wrong. Please verify the inputs and try again."
-        except Exception as e:
-            dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-            dict_status["str_error_msg"] = "Something went wrong. Please contact with support team."
-            print(e)
-        finally:
-            cursor.close()
-            connection.close()
-
-        return dict_status
+                dict_status["str_error_msg"] = "Something went wrong. Please contact with support team."
+                print(e)
+            finally:
+                cursor.close()
+                connection.close()
+            
+            return dict_status
 
     # def add_vehicle(self, str_company : str, str_model : str,
     #                 str_type : str, str_number : str,
@@ -129,52 +131,52 @@ class Vehicle():
     #         cursor.close()
     #         connection.close()
     #     return  dict_status
-
-    def fetch_vehicle_details(self, dict_filter_criteria: dict):
-        print("helooo fetch_vehicle_det")
-
+    
+    def fetch_person_details(self, dict_filter_criteria: dict):
         list_persons = []
-
+        
         try:
+            # Establish the database connection
             connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
-                                    SERVER={self.dict_db_details["str_server"]};
-                                    UID={self.dict_db_details["str_username"]};
-                                    PWD={self.dict_db_details["str_password"]}""",
-                                        autocommit=True)
+                                            SERVER={self.dict_db_details["str_server"]};
+                                            UID={self.dict_db_details["str_username"]};
+                                            PWD={self.dict_db_details["str_password"]}""", 
+                                            autocommit=True)
             cursor = connection.cursor()
 
             # Select the database
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
             cursor.execute(select_db_query)
 
-            # Query to select person details
-            select_all_query = f"""SELECT TOP (1000) [full_name], [age], [gender], [status], [photo_path],[id]
-                                    FROM [FR_DB_NEW].[dbo].[personregister]"""
-            cursor.execute(select_all_query)
+            # Constructing the dynamic SQL query based on filter criteria
+            base_query = """SELECT *
+                            FROM [FR_DB_NEW].[dbo].[personregister]
+                            WHERE 1=1"""
+            
+            # Apply filters
+            if dict_filter_criteria.get("gender") and dict_filter_criteria["gender"] != "%":
+                base_query += f" AND gender = '{dict_filter_criteria['gender']}'"
+            if dict_filter_criteria.get("status") and dict_filter_criteria["status"] != "%":
+                base_query += f" AND status = '{dict_filter_criteria['status']}'"
+            # Uncomment and implement color filter if needed
+            # if dict_filter_criteria.get("color") and dict_filter_criteria["color"] != "%":
+            #     base_query += f" AND color = '{dict_filter_criteria['color']}'"
 
-            # Fetch all the records
+            # Execute the query
+            cursor.execute(base_query)
+
+            # Fetch all records
             persons_list = cursor.fetchall()
 
             if persons_list:
                 columns = [column[0] for column in cursor.description]  # Fetch column names
                 for data in persons_list:
                     record_dict = {columns[i]: data[i] for i in range(len(columns))}  # Map columns to data
-                    # photo=self.base64_to_tkinter_image(data[4], 200, 135)
-
-                    # print('row data is ',photo)
                     list_persons.append(record_dict)
 
-            # print(data["photo_path"],"before conversion")
-            # data["photo_path"] = self.base64_to_cv2mat_or_pillow_image_converter(data["photo_path"], 200, 135)
-            # print(data["photo_path"],"after  conversion")
-
-
-
-
         except Exception as e:
-            # Handle exceptions (optional: log the error or re-raise)
             print(f"An error occurred: {e}")
-
+        
         finally:
             # Close the cursor and connection
             cursor.close()
@@ -182,10 +184,11 @@ class Vehicle():
 
         return list_persons
 
+
     # def fetch_vehicle_details(self, dict_filter_criteria : dict):
-
+        
     #     list_vehicle = []
-
+        
     #     try:
     #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
     #                                     SERVER={self.dict_db_details["str_server"]};
@@ -195,7 +198,7 @@ class Vehicle():
     #         cursor = connection.cursor()
     #         select_db_query = f"USE {self.dict_db_details['str_db_name']};"
     #         cursor.execute(select_db_query)
-
+            
     #         select_all_query = f"""SELECT vehicle_number, vehicle_type, vehicle_color, vehicle_owner, manufacturing_year, vehicle_company, vehicle_model,vehicle_status FROM
     #                                 [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]
     #                                 WHERE vehicle_owner LIKE ? AND vehicle_type LIKE ? AND vehicle_color LIKE ?"""
@@ -207,7 +210,7 @@ class Vehicle():
     #             for data in vehicles_list:
     #                 record_dict = {columns[i]: data[i] for i in range(len(columns))}  # Map columns to data
     #                 list_vehicle.append(record_dict)
-
+ 
     #     except Exception as e:
     #         pass
 
@@ -217,7 +220,8 @@ class Vehicle():
 
     #     return  list_vehicle
 
-    # ************************************************************************************************
+
+    #************************************************************************************************
     def fetch_single_vehicle_data(self, name: str):
         dict_status = {
             "str_error_msg_heading": "",
@@ -294,22 +298,24 @@ class Vehicle():
 
     #     return dict_status
 
-    def get_data_count(self, dict_filter_criteria: dict):
+
+    
+
+    def get_data_count(self, dict_filter_criteria : dict):
         i_data_count = 0
 
         try:
             connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                         SERVER={self.dict_db_details["str_server"]};
                                         UID={self.dict_db_details["str_username"]};
-                                        PWD={self.dict_db_details["str_password"]}""",
+                                        PWD={self.dict_db_details["str_password"]}""", 
                                         autocommit=True)
             cursor = connection.cursor()
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
             cursor.execute(select_db_query)
-
+            
             data_count_query = f"""SELECT COUNT(*) FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}] WHERE vehicle_owner LIKE ? AND vehicle_type LIKE ? AND vehicle_color LIKE ? """
-            cursor.execute(data_count_query, dict_filter_criteria["str_owner"], dict_filter_criteria["str_type"],
-                           dict_filter_criteria["str_color"])
+            cursor.execute(data_count_query, dict_filter_criteria["str_owner"], dict_filter_criteria["str_type"], dict_filter_criteria["str_color"])
             result = cursor.fetchone()
             i_data_count = int(result[0])
 
@@ -320,21 +326,54 @@ class Vehicle():
             cursor.close()
             connection.close()
 
-        return i_data_count
+        return  i_data_count
+
 
     def sort_vehicle_data(self, list_vehicle_data: list, str_column: str, bool_sort_type: bool):
         list_vehicle = sorted(list_vehicle_data, key=lambda x: x[str_column], reverse=bool_sort_type)
         return list_vehicle
 
+    # def search_vehicle_number(self, list_vehicle_data : list, str_vehicle_number : str):
+    #     print(str_vehicle_number,"***********str_vehicle_number")
+    #     list_vehicle = []
+        
+    #     for data in list_vehicle_data:
+    #         if(str_vehicle_number in data["full_name"]):
+    #             list_vehicle.append(data)
+
+    #     return  list_vehicle
+    
+    # def search_vehicle_number(self, list_vehicle_data : list, str_vehicle_number : str):
+
+    #     list_vehicle = []
+    #     # dict_status = self.get_all_person()
+    #     # for data in dict_status["list_owner"]:
+    #     #     # Assuming 'name' is the key for the owner's name and 'data' is a dictionary
+    #     #     name = data.upper()  # Convert to uppercase for case-insensitive comparison
+
+    #     #     if str_vehicle_number.upper() in name:  # Compare in uppercase for case-insensitive search
+    #     #         list_vehicle.append(data[0])
+
+        
+    #     for data in list_vehicle_data:
+    #         if(str_vehicle_number in data["full_name"]):
+    #             list_vehicle.append(data)
+
+    #     return  list_vehicle
+
     def search_vehicle_number(self, list_vehicle_data: list, str_vehicle_number: str):
-        print(str_vehicle_number, "***********str_vehicle_number")
         list_vehicle = []
+        
+        # Convert the search vehicle number to uppercase for case-insensitive comparison
+        str_vehicle_number = str_vehicle_number.upper()
 
         for data in list_vehicle_data:
-            if (str_vehicle_number in data["full_name"]):
+            # Convert the full_name to uppercase for case-insensitive comparison
+            if str_vehicle_number in data["full_name"].upper():
                 list_vehicle.append(data)
 
         return list_vehicle
+
 
     def search_vehicle_owner(self, str_vehicle_owner: str):
         list_owner = []
@@ -345,7 +384,7 @@ class Vehicle():
             owner_name = data.upper()  # Convert to uppercase for case-insensitive comparison
 
             if str_vehicle_owner.upper() in owner_name:  # Compare in uppercase for case-insensitive search
-                list_owner.append(data)
+                list_owner.append(data[0])
 
         return list_owner
 
@@ -355,13 +394,14 @@ class Vehicle():
 
         for data in dict_status["list_type"]:
             # Assuming 'name' is the key for the owner's name and 'data' is a dictionary
-            vehicle_type = data.upper()  # Convert to uppercase for case-insensitive comparison
+            vehicle_type = data.upper()
+            if str_vehicle_type.upper in vehicle_type:  # Compare in uppercase for case-insensitive search
+                list_type.append(data[0])
 
-            if str_vehicle_type.upper() in vehicle_type:  # Compare in uppercase for case-insensitive search
-                list_type.append(data)
+            # if str_vehicle_type.upper() in vehicle_type:  # Compare in uppercase for case-insensitive search
+            #     list_type.append(data[0])
 
         return list_type
-
     def search_vehicle_company(self, str_vehicle_company: str):
         list_company = []
         dict_status = ["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Volkswagen", "Hyundai", "Nissan"]
@@ -375,30 +415,31 @@ class Vehicle():
 
         return list_company
 
-    def search_vehicle_color(self, str_vehicle_color: str):
-        list_color = []
-        dict_status = self.get_all_vehicle_color()
+    # def search_vehicle_color(self, str_vehicle_color: str):
+    #     list_color = []
+    #     dict_status = self.get_all_vehicle_color()
 
-        for data in dict_status["list_color"]:
-            # Assuming 'name' is the key for the owner's name and 'data' is a dictionary
-            vehicle_color = data.upper()  # Convert to uppercase for case-insensitive comparison
+    #     for data in dict_status["list_color"]:
+    #         # Assuming 'name' is the key for the owner's name and 'data' is a dictionary
+    #         vehicle_color = data.upper()  # Convert to uppercase for case-insensitive comparison
 
-            if str_vehicle_color.upper() in vehicle_color:  # Compare in uppercase for case-insensitive search
-                list_color.append(data)
+    #         if str_vehicle_color.upper() in vehicle_color:  # Compare in uppercase for case-insensitive search
+    #             list_color.append(data)
 
-        return list_color
+    #     return list_color
+
 
     # def delete_vehicle(self, str_vehicle : str, str_password : str):
     #     dict_status = {
     #         "str_error_msg_heading" : "",
     #         "str_error_msg" : ""
     #         }
-
+        
     #     if(str_password != self.dict_user_data["str_password"]):
     #         dict_status["str_error_msg_heading"] = "Error! Incorrect Password"
     #         dict_status["str_error_msg"] = "The password that you've entered is incorrect. Please try again."
     #         return dict_status
-
+        
     #     try:
     #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
     #                                     SERVER={self.dict_db_details["str_server"]};
@@ -419,15 +460,16 @@ class Vehicle():
     #         cursor.close()
     #         connection.close()
     #     return  dict_status
+    
 
     def delete_vechiles(self, face_names):
-
+        
         cursor = None
-
+ 
         if not face_names:
             print("No Face  names provided for deletion.")
             return False
-
+ 
         try:
             # Connect to the database
             connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
@@ -436,19 +478,19 @@ class Vehicle():
                                             PWD={self.dict_db_details["str_password"]}""",
                                         autocommit=True)
             cursor = connection.cursor()
-
+ 
             # Prepare the query to delete camera data
             placeholders = ', '.join(['?'] * len(face_names))
-            print(placeholders, "******************************************")
-
+            print(placeholders,"******************************************")
+           
             delete_query = f"""
             DELETE FROM [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
             WHERE full_name IN ({placeholders})
             """
-
+ 
             # Execute the delete query
             cursor.execute(delete_query, face_names)
-
+ 
             print(f"Deleted Persion: {', '.join(face_names)} successfully.")
             return True
         except pyodbc.InterfaceError as e:
@@ -471,15 +513,16 @@ class Vehicle():
                 cursor.close()
             if connection:
                 connection.close()
+    
 
     # def delete_vechiles(self, vehicle_names):
-
+        
     #     cursor = None
-
+ 
     #     if not vehicle_names:
     #         print("No camera names provided for deletion.")
     #         return False
-
+ 
     #     try:
     #         # Connect to the database
     #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
@@ -488,17 +531,17 @@ class Vehicle():
     #                                         PWD={self.dict_db_details["str_password"]}""",
     #                                     autocommit=True)
     #         cursor = connection.cursor()
-
+ 
     #         # Prepare the query to delete camera data
     #         placeholders = ', '.join(['?'] * len(vehicle_names))
     #         delete_query = f"""
     #         DELETE FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]
     #         WHERE vehicle_number IN ({placeholders})
     #         """
-
+ 
     #         # Execute the delete query
     #         cursor.execute(delete_query, vehicle_names)
-
+ 
     #         print(f"Deleted vechile: {', '.join(vehicle_names)} successfully.")
     #         return True
     #     except pyodbc.InterfaceError as e:
@@ -522,18 +565,19 @@ class Vehicle():
     #         if connection:
     #             connection.close()
 
+    
     def get_user_added_vehicles(self):
         dict_status = {
-            "str_error_msg_heading": "",
-            "str_error_msg": "",
-            "list_vehicles": []
-        }
-
+                "str_error_msg_heading" : "",
+                "str_error_msg" : "",
+                "list_vehicles" : []
+            }
+        
         try:
             connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                         SERVER={self.dict_db_details["str_server"]};
                                         UID={self.dict_db_details["str_username"]};
-                                        PWD={self.dict_db_details["str_password"]}""",
+                                        PWD={self.dict_db_details["str_password"]}""", 
                                         autocommit=True)
             cursor = connection.cursor()
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
@@ -542,13 +586,13 @@ class Vehicle():
             #                     WHERE added_by = ?
             #                 """
             fetch_vehicle_query = f"""SELECT vehicle_number FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]
-
+                                           
                                        """
             cursor.execute(fetch_vehicle_query)
             vehicles_list = cursor.fetchall()
             if vehicles_list:
                 for data in vehicles_list:
-                    dict_status["list_vehicles"].append(data.vehicle_number)
+                   dict_status["list_vehicles"].append(data.vehicle_number)
             else:
                 dict_status["str_error_msg_heading"] = "No Data Found"
                 dict_status["str_error_msg"] = "You have's entered any vehciles data yet."
@@ -558,124 +602,245 @@ class Vehicle():
         finally:
             cursor.close()
             connection.close()
-        return dict_status
+        return  dict_status
+    
+    # def get_all_person(self):
+    #     dict_status = {
+    #             "str_error_msg_heading" : "",
+    #             "str_error_msg" : "",
+    #             "list_owner" : []
+    #         }
+        
+    #     try:
+    #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+    #                                     SERVER={self.dict_db_details["str_server"]};
+    #                                     UID={self.dict_db_details["str_username"]};
+    #                                     PWD={self.dict_db_details["str_password"]}""", 
+    #                                     autocommit=True)
+    #         cursor = connection.cursor()
+    #         select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+    #         cursor.execute(select_db_query)
 
+    #         fetch_owner_query =f"""SELECT DISTINCT  full_name FROM [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]"""
+    #         cursor.execute(fetch_owner_query)
+
+    #         name_list = cursor.fetchall()
+         
+    #         if name_list:
+    #             for data in name_list:
+    #                dict_status["list_owner"].append(data[0])  # Only append the first element (gender) from the tuple
+
+    #             #    dict_status["list_owner"].append(data)
+                
+    #     except Exception as e:
+    #         print(e,"exceptionnnn")
+    #         dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+    #         dict_status["str_error_msg"] = "Unable to fetch the owners list."
+    #     finally:
+    #         cursor.close()
+    #         connection.close()
+    #     print(dict_status,"******************************")
+    #     return  dict_status
+    
     def get_all_vehicle_owner(self):
         dict_status = {
-            "str_error_msg_heading": "",
-            "str_error_msg": "",
-            "list_owner": []
-        }
-
+                "str_error_msg_heading" : "",
+                "str_error_msg" : "",
+                "list_owner" : []
+            }
+        
         try:
             connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                         SERVER={self.dict_db_details["str_server"]};
                                         UID={self.dict_db_details["str_username"]};
-                                        PWD={self.dict_db_details["str_password"]}""",
+                                        PWD={self.dict_db_details["str_password"]}""", 
                                         autocommit=True)
             cursor = connection.cursor()
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
             cursor.execute(select_db_query)
-            fetch_owner_query = f"""SELECT DISTINCT  vehicle_owner FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]"""
+
+            fetch_owner_query =f"""SELECT DISTINCT  gender FROM [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]"""
             cursor.execute(fetch_owner_query)
+
             owner_list = cursor.fetchall()
+         
             if owner_list:
                 for data in owner_list:
-                    dict_status["list_owner"].append(data.vehicle_owner)
+                   dict_status["list_owner"].append(data[0])  # Only append the first element (gender) from the tuple
+
+                #    dict_status["list_owner"].append(data)
+                
         except Exception as e:
+            print(e,"exceptionnnn")
             dict_status["str_error_msg_heading"] = "Error! Something went wrong"
             dict_status["str_error_msg"] = "Unable to fetch the owners list."
         finally:
             cursor.close()
             connection.close()
-        return dict_status
+        print(dict_status,"******************************")
+        return  dict_status
+    
+
+        
+
+    # def get_all_vehicle_owner(self):
+    #     dict_status = {
+    #             "str_error_msg_heading" : "",
+    #             "str_error_msg" : "",
+    #             "list_owner" : []
+    #         }
+        
+    #     try:
+    #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+    #                                     SERVER={self.dict_db_details["str_server"]};
+    #                                     UID={self.dict_db_details["str_username"]};
+    #                                     PWD={self.dict_db_details["str_password"]}""", 
+    #                                     autocommit=True)
+    #         cursor = connection.cursor()
+    #         select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+    #         cursor.execute(select_db_query)
+    #         fetch_owner_query = f"""SELECT DISTINCT  vehicle_owner FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]"""
+    #         cursor.execute(fetch_owner_query)
+    #         owner_list = cursor.fetchall()
+    #         if owner_list:
+    #             for data in owner_list:
+    #                dict_status["list_owner"].append(data.vehicle_owner)
+    #     except Exception as e:
+    #         dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+    #         dict_status["str_error_msg"] = "Unable to fetch the owners list."
+    #     finally:
+    #         cursor.close()
+    #         connection.close()
+    #     return  dict_status
+
 
     def get_all_vehicle_type(self):
+      
         dict_status = {
-            "str_error_msg_heading": "",
-            "str_error_msg": "",
-            "list_type": []
-        }
-
+                "str_error_msg_heading" : "",
+                "str_error_msg" : "",
+                "list_type" : []
+            }
+        
         try:
             connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                         SERVER={self.dict_db_details["str_server"]};
                                         UID={self.dict_db_details["str_username"]};
-                                        PWD={self.dict_db_details["str_password"]}""",
+                                        PWD={self.dict_db_details["str_password"]}""", 
                                         autocommit=True)
             cursor = connection.cursor()
             select_db_query = f"USE {self.dict_db_details['str_db_name']};"
             cursor.execute(select_db_query)
-            fetch_type_query = f"""SELECT DISTINCT  vehicle_type FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]"""
+            fetch_type_query = f"""SELECT DISTINCT  status FROM [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]"""
             cursor.execute(fetch_type_query)
             type_list = cursor.fetchall()
             if type_list:
                 for data in type_list:
-                    dict_status["list_type"].append(data.vehicle_type)
+                   dict_status["list_type"].append(data[0])
         except Exception as e:
             dict_status["str_error_msg_heading"] = "Error! Something went wrong"
             dict_status["str_error_msg"] = "Unable to fetch the vehicle types."
         finally:
             cursor.close()
             connection.close()
-        return dict_status
+        return  dict_status
+
+
+    
+
+    # def get_all_vehicle_type(self):
+    #     dict_status = {
+    #             "str_error_msg_heading" : "",
+    #             "str_error_msg" : "",
+    #             "list_type" : []
+    #         }
+        
+    #     try:
+    #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+    #                                     SERVER={self.dict_db_details["str_server"]};
+    #                                     UID={self.dict_db_details["str_username"]};
+    #                                     PWD={self.dict_db_details["str_password"]}""", 
+    #                                     autocommit=True)
+    #         cursor = connection.cursor()
+    #         select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+    #         cursor.execute(select_db_query)
+    #         fetch_type_query = f"""SELECT DISTINCT  vehicle_type FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]"""
+    #         cursor.execute(fetch_type_query)
+    #         type_list = cursor.fetchall()
+    #         if type_list:
+    #             for data in type_list:
+    #                dict_status["list_type"].append(data.vehicle_type)
+    #     except Exception as e:
+    #         dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+    #         dict_status["str_error_msg"] = "Unable to fetch the vehicle types."
+    #     finally:
+    #         cursor.close()
+    #         connection.close()
+    #     return  dict_status
+
 
     def get_all_vehicle_color(self):
-        dict_status = {
-            "str_error_msg_heading": "",
-            "str_error_msg": "",
-            "list_color": []
-        }
-
-        try:
-            connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+            dict_status = {
+                    "str_error_msg_heading" : "",
+                    "str_error_msg" : "",
+                    "list_color" : []
+                }
+            
+            try:
+                connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                             SERVER={self.dict_db_details["str_server"]};
                                             UID={self.dict_db_details["str_username"]};
-                                            PWD={self.dict_db_details["str_password"]}""",
-                                        autocommit=True)
-            cursor = connection.cursor()
-            select_db_query = f"USE {self.dict_db_details['str_db_name']};"
-            cursor.execute(select_db_query)
-            fetch_color_query = f"""SELECT DISTINCT  vehicle_color FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]"""
-            cursor.execute(fetch_color_query)
-            color_list = cursor.fetchall()
-            if color_list:
-                for data in color_list:
-                    dict_status["list_color"].append(data.vehicle_color)
-        except Exception as e:
-            dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-            dict_status["str_error_msg"] = "Unable to fetch vehicle colors."
-        finally:
-            cursor.close()
-            connection.close()
-        return dict_status
+                                            PWD={self.dict_db_details["str_password"]}""", 
+                                            autocommit=True)
+                cursor = connection.cursor()
+                select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+                cursor.execute(select_db_query)
+                fetch_color_query = f"""SELECT DISTINCT  vehicle_color FROM [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]"""
+                cursor.execute(fetch_color_query)
+                color_list = cursor.fetchall()
+                if color_list:
+                    for data in color_list:
+                        dict_status["list_color"].append(data.vehicle_color)
+            except Exception as e:
+                dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+                dict_status["str_error_msg"] = "Unable to fetch vehicle colors."
+            finally:
+                cursor.close()
+                connection.close()
+            return  dict_status
 
-    def validate_company(self, str_company: str) -> str:
+
+    def validate_company(self, str_company : str) -> str:
         if str_company == "Select an option":
             return "ⓘ Company name can't be empty"
         return ""
+    
 
-    def validate_model(self, str_model: str) -> str:
+    def validate_model(self, str_model : str) -> str:
         if len(str_model) == 0:
             return "ⓘ Model name can't be empty"
         return ""
+        
 
-    def validate_type(self, str_type: str) -> str:
+    def validate_type(self, str_type : str) -> str:
         if str_type == "Select an option":
             return "ⓘ Vehicle type can't be empty"
         return ""
 
-    def validate_number(self, str_number: str) -> str:
+
+    def validate_number(self, str_number : str) -> str:
         if len(str_number) == 0:
             return "ⓘ Vehicle number can't be empty"
         return ""
+    
 
-    def validate_color(self, str_color: str) -> str:
+    def validate_color(self, str_color : str) -> str:
         if len(str_color) == 0:
             return "ⓘ Vehicle color can't be empty"
         return ""
 
-    def validate_date(self, str_date: str) -> str:
+
+    def validate_date(self, str_date : str) -> str:
         if len(str_date) == 0:
             return "ⓘ Manufacturing date can't be empty"
         if len(str_date) != 4:
@@ -685,140 +850,85 @@ class Vehicle():
         current_year = datetime.datetime.now().year
         past_50_year = current_year - 50
         input_year = int(str_date)
-        if (input_year > current_year or past_50_year > input_year):
+        if(input_year > current_year or past_50_year > input_year):
             return f"ⓘ Year must be with in {past_50_year} - {current_year}"
         return ""
+        
 
-    def validate_owner(self, str_owner: str) -> str:
+    def validate_owner(self, str_owner : str) -> str:
         if len(str_owner) == 0:
             return "ⓘ Owner name can't be empty"
         return ""
+    
 
-    def validate_user_vehicle(self, str_user_vehicle: str) -> str:
+    def validate_user_vehicle(self, str_user_vehicle : str) -> str:
         if str_user_vehicle == "Select an option":
             return "ⓘ Company name can't be empty"
         return ""
+    
 
-    def validate_password(self, str_user_password: str) -> str:
+    def validate_password(self, str_user_password : str) -> str:
         if str_user_password == "":
             return "ⓘ Password can't be empty"
         return ""
+   
+    
 
-    def update_vehicle(self, str_name: str,
-                       str_age: int, str_gender: str, str_status: str,
-                       str_photo_path: str, str_id: int, added_by):
-        print(str_name, str_age, str_gender, str_status, str_id, str_photo_path, "******************")
-        dict_status = {
-            "str_error_msg_heading": "",
-            "str_error_msg": ""
-        }
-        try:
-            print("db is connected")
-            # Connect to the database
-            connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+    def update_vehicle(self,str_name: str,
+               str_age: int, str_gender: str, str_status: str,
+               str_photo_path: str,str_id:int,added_by):
+            dict_status = {
+                "str_error_msg_heading": "",
+                "str_error_msg": ""
+            }
+            try:
+                print("db is connected")
+                # Connect to the database
+                connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
                                                 SERVER={self.dict_db_details["str_server"]};
                                                 UID={self.dict_db_details["str_username"]};
-                                                PWD={self.dict_db_details["str_password"]}""",
-                                        autocommit=True)
-            cursor = connection.cursor()
-
-            # Select the database
-            select_db_query = f"USE {self.dict_db_details['str_db_name']};"
-            cursor.execute(select_db_query)
-
-            # Combine first and last name for full nam
+                                                PWD={self.dict_db_details["str_password"]}""", 
+                                                autocommit=True)
+                cursor = connection.cursor()
+                
+                # Select the database
+                select_db_query = f"USE {self.dict_db_details['str_db_name']};"
+                cursor.execute(select_db_query)
+                
+                # Combine first and last name for full nam
             # Update query
-            update_query = f"""UPDATE [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
+                update_query = f"""UPDATE [{self.dict_db_details["str_db_name"]}].[dbo].[personregister]
                                 SET full_name = ?, 
                                     age = ?, 
                                     gender = ?, 
                                     status = ?, 
                                     photo_path = ?
                                 WHERE id = ?"""
-
-            # Execute the update query with the provided parameters
-            cursor.execute(update_query,
-                           str_name, int(str_age), str_gender, str_status,
-                           str_photo_path,
-                           int(str_id))  # Use the vehicle_number to identify the vehicle
-
-
-        except pyodbc.Error as e:
-            print(e)
-            if (e.args[0] == '23000' and "duplicate" in e.args[1]):
-                dict_status["str_error_msg_heading"] = "Error! Duplicate Entries"
-                dict_status["str_error_msg"] = "Duplicate Person not allowed."
-            else:
-                dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-                dict_status["str_error_msg"] = "Something went wrong. Please verify the inputs and try again."
-        except Exception as e:
-            print(e)
-            dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-            dict_status["str_error_msg"] = "Something went wrong. Please contact support."
-        finally:
-
-            pass
-        # cursor.close()
-        # connection.close()
-
-        return dict_status
-    # def update_vehicle(self, str_company, str_model, 
-    #                str_type, str_number,
-    #                str_color, date,
-    #                str_owner, str_blacklist, added_by):
-
-    #     dict_status = {
-    #         "str_error_msg_heading": "",
-    #         "str_error_msg": ""
-    #     }
-
-    #     try:
-    #         # Use Windows Authentication (Trusted Connection) for connection to the database
-    #         connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
-    #                                         SERVER={self.dict_db_details["str_server"]};
-    #                                         UID={self.dict_db_details["str_username"]};
-    #                                         PWD={self.dict_db_details["str_password"]}""", 
-    #                                         autocommit=True)
-    #         cursor = connection.cursor()
-    #         select_db_query = f"USE {self.dict_db_details['str_db_name']};"
-    #         cursor.execute(select_db_query)
-
-    #         # Update query
-    #         update_query = f"""UPDATE [{self.dict_db_details["str_db_name"]}].[dbo].[{self.dict_db_details["str_vehicle_table"]}]
-    #                         SET vehicle_company = ?, 
-    #                             vehicle_model = ?, 
-    #                             vehicle_type = ?, 
-    #                             vehicle_color = ?, 
-    #                             vehicle_owner = ?, 
-    #                             manufacturing_year = ?, 
-    #                             vehicle_status = ?
-    #                         WHERE vehicle_number = ?"""
-
-    #         # Execute the update query with the provided parameters
-    #         cursor.execute(update_query, 
-    #                     str_company, str_model, str_type, 
-    #                     str_color, str_owner, int(date), 
-    #                     int(str_blacklist), 
-    #                     str_number)  # Use the vehicle_number to identify the vehicle
-
-    #     except pyodbc.Error as e:
-    #         print(e)
-    #         if (e.args[0] == '23000' and "duplicate" in e.args[1]):
-    #             dict_status["str_error_msg_heading"] = "Error! Duplicate Entries"
-    #             dict_status["str_error_msg"] = "Duplicate vehicle not allowed."
-    #         else:
-    #             dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-    #             dict_status["str_error_msg"] = "Something went wrong. Please verify the inputs and try again."
-    #     except Exception as e:
-    #             print(e)
-    #             dict_status["str_error_msg_heading"] = "Error! Something went wrong"
-    #             dict_status["str_error_msg"] = "Something went wrong. Please contact support."
-    #     finally:
-
-    #         pass
-    #         # cursor.close()
-    #         # connection.close()
-
-    #     return dict_status
-
-
+                
+                # Execute the update query with the provided parameters
+                cursor.execute(update_query, 
+                            str_name, int(str_age),str_gender, str_status, 
+                            str_photo_path, 
+                            int(str_id))  # Use the vehicle_number to identify the vehicle
+         
+            
+            except pyodbc.Error as e:
+                print(e)
+                if (e.args[0] == '23000' and "duplicate" in e.args[1]):
+                    dict_status["str_error_msg_heading"] = "Error! Duplicate Entries"
+                    dict_status["str_error_msg"] = "Duplicate Person not allowed."
+                else:
+                    dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+                    dict_status["str_error_msg"] = "Something went wrong. Please verify the inputs and try again."
+            except Exception as e:
+                    print(e)
+                    dict_status["str_error_msg_heading"] = "Error! Something went wrong"
+                    dict_status["str_error_msg"] = "Something went wrong. Please contact support."
+            finally:
+                
+                pass
+            # cursor.close()
+            # connection.close()
+        
+            return dict_status
+   

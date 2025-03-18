@@ -2,7 +2,6 @@ from Interface.main import Interface
 from Core.main import Core
 from .add_camera import AddCameraController
 from .camera_roi import CameraRoiController
-from .live_feed import LiveEventController
 from .show_camera import ShowCameraController
 
 from .signin import SignInController
@@ -31,7 +30,7 @@ class Controller:
         self.obj_DeleteVehicleController = DeleteVehicleController(Core, Interface)
         self.obj_HistoricalEventController = HistoricalEventController(Core, Interface)
         self.obj_EditProfileController = EditProfileController(Core, Interface)
-        self.obj_LiveFeedController = LiveEventController(Core, Interface)
+        self.obj_LiveFeedController = (Core, Interface)
         self.obj_AddCameraController = AddCameraController(Core, Interface)
         self.obj_ShowCameraController = ShowCameraController(Core, Interface)
         self.obj_CameraRoiController = CameraRoiController(Core, Interface)
@@ -40,4 +39,4 @@ class Controller:
 
 
     def start_application(self) -> None:
-        self.obj_Interface.switch_frames("historical_event")
+        self.obj_Interface.switch_frames("vehicle_list")

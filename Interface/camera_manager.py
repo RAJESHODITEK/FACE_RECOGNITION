@@ -4,13 +4,11 @@ from customtkinter import CTkFrame, CTkLabel, CTkButton, CTkEntry, StringVar, CT
     CTkCheckBox, CTkCanvas
 from PIL import Image
 
-from Core.main import Core
-
 
 class CameramanagerInterface(CTkFrame):
     def __init__(self, *args, root_width: int = 1920, root_height: int = 1080, **kwargs):
         super().__init__(*args, **kwargs)
-        self.obj_Core=Core()
+
         self.dropdown_window = None
         self.frame_popup_table = None
         self.selected_cameras = set()  # Using set for efficient camera selection tracking
@@ -145,7 +143,7 @@ class CameramanagerInterface(CTkFrame):
 
         self.frame_table_heading = CTkFrame(
             self.frame_form,
-            height=44,
+            height=45,
             fg_color="#313A46"
         )
         # Update column weights
@@ -159,9 +157,9 @@ class CameramanagerInterface(CTkFrame):
         self.frame_table_heading.grid(row=2, column=0, padx=(15, 19), pady=(20, 0), sticky="nsew")
 
         # Table headers with fixed alignment
-        self.table_headers = ["SL.No", "Camera Name", "URL", "Direction", "ROI Percentage", "Select"]
+        self.table_headers = ["Sl No", "Camera Name", "URL", "Direction", "ROI Percentage", "Select"]
         header_configs = [
-            {"text": "SL.No", "anchor": "center", "sticky": "ew", "padx": 14},
+            {"text": "Sl No", "anchor": "center", "sticky": "ew", "padx": 14},
             {"text": "Camera Name", "anchor": "w", "sticky": "w", "padx": 8},
             {"text": "URL", "anchor": "w", "sticky": "w", "padx": 8},
             {"text": "Direction", "anchor": "center", "sticky": "ew", "padx": 8},
@@ -213,8 +211,7 @@ class CameramanagerInterface(CTkFrame):
 
     def create_percentage_axis(self, parent, camera_data):
         """Create an enhanced visual ROI representation showing camera view"""
-        # Create main frame with reduced height
-        frame = CTkFrame(parent, height=130, fg_color="transparent")
+        frame = CTkFrame(parent, height=120, fg_color="transparent")
 
         # Create canvas
         canvas = CTkCanvas(frame, height=110, width=250, bg="white", highlightthickness=0)
@@ -225,8 +222,9 @@ class CameramanagerInterface(CTkFrame):
         height = 90
         margin = 20
 
-        # Create gradient background effect
+        # Create gradient background effect - ensuring color values stay in valid range
         for i in range(margin, height - margin):
+            # Calculate color value between 200-240 for a subtle gradient
             color_val = min(240, max(200, 200 + (i - margin)))
             color = f'#{color_val:02x}{color_val:02x}{color_val:02x}'
             canvas.create_line(margin, i, width - margin, i, fill=color)
@@ -234,12 +232,11 @@ class CameramanagerInterface(CTkFrame):
         # Draw border frame
         canvas.create_rectangle(margin, margin, width - margin, height - margin)
 
-
         # Get percentage values
-        width_start = camera_data.get('width_start_percentage', camera_data['width_start_percentage'])
-        width_end = camera_data.get('width_end_percentage', camera_data['width_end_percentage'])
-        height_start = camera_data.get('height_start_percentage', camera_data['height_start_percentage'])
-        height_end = camera_data.get('height_end_percentage', camera_data['height_end_percentage'])
+        width_start = camera_data.get('width_start_percentage', camera_data['start_percentage'])
+        width_end = camera_data.get('width_end_percentage', camera_data['end_percentage'])
+        height_start = camera_data.get('height_start_percentage', camera_data['start_percentage'])
+        height_end = camera_data.get('height_end_percentage', camera_data['end_percentage'])
 
         # Calculate ROI coordinates
         plot_width = width - 2 * margin
@@ -257,9 +254,11 @@ class CameramanagerInterface(CTkFrame):
         canvas.create_line(margin, roi_y2, width - margin, roi_y2, fill="red", dash=(2, 2))
 
         # Draw ROI rectangle with gradient fill
-        if roi_y2 > roi_y1:
+        if roi_y2 > roi_y1:  # Only draw if there's a valid height
             for y in range(int(roi_y1), int(roi_y2)):
+                # Calculate a percentage between 0 and 1
                 progress = (y - roi_y1) / (roi_y2 - roi_y1)
+                # Generate a blue gradient from light to darker
                 blue = min(255, max(0, int(180 + progress * 75)))
                 color = f'#c8d8{blue:02x}'
                 canvas.create_line(roi_x1, y, roi_x2, y, fill=color)
@@ -268,7 +267,7 @@ class CameramanagerInterface(CTkFrame):
         canvas.create_rectangle(roi_x1, roi_y1, roi_x2, roi_y2,
                                 outline="blue", width=2)
 
-        # Add percentage labels
+        # Add percentage labels with better styling
         for i in range(0, 101, 20):
             # Width percentages
             x_pos = margin + (plot_width * i / 100)
@@ -277,13 +276,34 @@ class CameramanagerInterface(CTkFrame):
                                font=("Arial", 8, "bold"))
 
             # Height percentages with background
-            if i > 0 and i < 100:
+            if i > 0 and i < 100:  # Skip endpoints for cleaner look
                 y_pos = margin + (plot_height * i / 100)
+                # Label background
                 canvas.create_rectangle(margin - 20, y_pos - 7, margin - 2, y_pos + 7,
                                         fill="white", outline="gray75")
                 canvas.create_text(margin - 11, y_pos,
                                    text=f"{i}%", anchor="center",
                                    font=("Arial", 7, "bold"))
+
+        # Modified ROI values display with h= and w= prefixes
+        width_text = f"w={width_start}%-{width_end}%"
+        height_text = f"h={height_start}%-{height_end}%"
+
+        # Text background and positioning for two lines of text
+        text_x = (roi_x1 + roi_x2) / 2
+        text_y = (roi_y1 + roi_y2) / 2
+
+        # Background rectangle sized for two lines
+        canvas.create_rectangle(text_x - 35, text_y - 15, text_x + 35, text_y + 15,
+                                fill="white", outline="gray75")
+
+        # Draw both lines of text
+        canvas.create_text(text_x, text_y - 6,
+                           text=width_text, font=("Arial", 8, "bold"),
+                           fill="black")
+        canvas.create_text(text_x, text_y + 6,
+                           text=height_text, font=("Arial", 8, "bold"),
+                           fill="black")
 
         # Add direction indicator with arrow
         direction = camera_data.get('direction', 'Unknown')
@@ -292,15 +312,6 @@ class CameramanagerInterface(CTkFrame):
         canvas.create_text(width / 2, 10,
                            text=f"{arrow} {direction}",
                            font=("Arial", 9, "bold"))
-
-        # Create single-line labels frame below the canvas
-        labels_frame = CTkFrame(frame, fg_color="transparent")
-        labels_frame.pack(fill="x", padx=5, pady=(1, 0))
-
-        # Create a single label with both width and height information
-        roi_text = f"Width %: {width_start}% - {width_end}%  |  Height %: {height_start}% - {height_end}%"
-        roi_label = CTkLabel(labels_frame, text=roi_text, font=("Arial", 11, "bold"), text_color='#2C2C2C')
-        roi_label.pack(anchor="w")
 
         return frame
 
@@ -539,6 +550,7 @@ class CameramanagerInterface(CTkFrame):
         self.popup.configure(bg="#232E51")
         self.popup.attributes("-topmost", True)
 
+        self.popup.protocol("WM_DELETE_WINDOW", self.on_popup_close)
 
         self.camera_form(data)
 
@@ -572,7 +584,7 @@ class CameramanagerInterface(CTkFrame):
         screen_height = self.winfo_screenheight()
 
         popup_width = 500
-        popup_height = 650
+        popup_height = 550
 
         x_position = (screen_width - popup_width) // 2
         y_position = (screen_height - popup_height) // 2
@@ -612,7 +624,7 @@ class CameramanagerInterface(CTkFrame):
 
     def camera_form(self, data=[]):
         self.i_form_width = 500
-        self.i_form_height = 650
+        self.i_form_height = 550
         self.list_direction = ["Entry", "Exit"]
         self.bool_dropdown_opened = False
 
@@ -953,7 +965,7 @@ class CameramanagerInterface(CTkFrame):
             width=100,
             text=data['save_button'] if data['save_button'] else 'Save',
             text_color="#FFFFFF",
-            fg_color="#444C57",
+            fg_color="#3A36F5",
             border_color="#3A36F5",
             font=("", 14),
             state=data['state'] if data['state'] else 'normal',
@@ -1069,6 +1081,25 @@ class CameramanagerInterface(CTkFrame):
         else:
             self.close_dropdown()
 
+        self.unbind('<Button-1>')
+        self.bind('<Button-1>', self.check_click_outside)
+        self.dropdown_window.bind('<FocusOut>', self.close_dropdown)
+
+        self.bool_dropdown_opened = True
+
+    def check_click_outside(self, event):
+        if self.dropdown_window and self.dropdown_window.winfo_exists():
+            x, y = event.x_root, event.y_root
+            wx = self.dropdown_window.winfo_x()
+            wy = self.dropdown_window.winfo_y()
+            ww = self.dropdown_window.winfo_width()
+            wh = self.dropdown_window.winfo_height()
+
+            # Close dropdown if the click is outside the dropdown window
+            if not (wx <= x <= wx + ww and wy <= y <= wy + wh):
+                self.close_dropdown()
+
+
     def check_click_outside(self, event):
         if self.dropdown_window and self.dropdown_window.winfo_exists():
             x, y = event.x_root, event.y_root
@@ -1106,30 +1137,6 @@ class CameramanagerInterface(CTkFrame):
         else:
             self.entry_selected_direction.configure(border_color="red")
             self.check_direction = False
-
-
-    def update_camera_data_list(self):
-        datas = self.obj_Core.obj_Camera.fetch_all_Camera_data()
-        self.dummy_camera_details.clear()
-        slno = 0
-        for data in datas:
-            slno = slno + 1
-            new_camera_details = {
-                'sl_no': slno,
-                'name': data['Camera_name'],
-                'url': data['URL'],
-                'direction': data['Camera_direction'],
-                'height_start_percentage': data['ROIStartPercentageHeight'],
-                'height_end_percentage': data['ROIEndPercentageHeight'],
-                'width_start_percentage': data['ROIStartPercentageWidth'],
-                'width_end_percentage': data['ROIEndPercentageWidth'],
-                'start_percentage': data['ROIStartPercentageWidth'],
-                'end_percentage': data['ROIEndPercentageWidth']
-            }
-            # Append the new data to the list
-            self.dummy_camera_details.append(new_camera_details)
-
-
 
 
 

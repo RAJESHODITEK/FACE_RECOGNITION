@@ -46,31 +46,31 @@ class Camera():
                 15,90
             ))
 
-            print(f"Camera {camera_data['Camera_name']} added successfully.")
+            # print(f"Camera {camera_data['Camera_name']} added successfully.")
             return True
         except pyodbc.InterfaceError as e:
             # Handle database interface errors (e.g., issues with the connection)
-            print(f"Database interface error: {e}")
+            # print(f"Database interface error: {e}")
             return False
         except pyodbc.DatabaseError as e:
             # Handle database-related errors (e.g., issues with executing the query)
-            print(f"Database error: {e}")
+            # print(f"Database error: {e}")
             return False
         except pyodbc.OperationalError as e:
             # Handle operational errors (e.g., issues with connecting to the server)
-            print(f"Operational error: {e}")
+            # print(f"Operational error: {e}")
             return False
         except pyodbc.Error as e:
             # General pyodbc errors
-            print(f"SQL execution error: {e}")
+            # print(f"SQL execution error: {e}")
             return False
         except KeyError as e:
             # Handle missing keys in the camera_data dictionary
-            print(f"Missing expected field in camera data: {e}")
+            # print(f"Missing expected field in camera data: {e}")
             return False
         except Exception as e:
             # Catch all other exceptions
-            print(f"An unexpected error occurred: {e}")
+            # print(f"An unexpected error occurred: {e}")
             return False
         finally:
             # Clean up and close the connection
@@ -100,7 +100,7 @@ class Camera():
             ]
             return camera_list
         except Exception as e:
-            print(f"Error fetching camera data: {e}")
+            # print(f"Error fetching camera data: {e}")
             return []
         finally:
             if cursor:
@@ -182,11 +182,11 @@ class Camera():
         except pyodbc.Error as e:
             dict_status["str_error_msg_heading"] = "Error! Database operation failed"
             dict_status["str_error_msg"] = f"Database error: {str(e)}"
-            print(e)
+            # print(e)
         except Exception as e:
             dict_status["str_error_msg_heading"] = "Error! Something went wrong"
             dict_status["str_error_msg"] = "Something went wrong. Please contact support team."
-            print(e)
+            # print(e)
         finally:
             cursor.close()
             connection.close()
@@ -234,11 +234,11 @@ class Camera():
         except pyodbc.Error as e:
             dict_status["str_error_msg_heading"] = "Error! Database operation failed"
             dict_status["str_error_msg"] = f"Database error: {str(e)}"
-            print(e)
+            # print(e)
         except Exception as e:
             dict_status["str_error_msg_heading"] = "Error! Something went wrong"
             dict_status["str_error_msg"] = "Something went wrong. Please contact support team."
-            print(e)
+            # print(e)
         finally:
             cursor.close()
             connection.close()
@@ -246,7 +246,7 @@ class Camera():
         return dict_status
 
     def rtsp_of_camera(self, cameraname):
-        print("camera name = ", cameraname)
+        # print("camera name = ", cameraname)
         camera_data = ''
         cursor = None
 
@@ -264,7 +264,7 @@ class Camera():
             camera_data = cursor.fetchone()
             if camera_data:
                 camera_rtsp = f'rtsp://{camera_data[3]}:{camera_data[4]}@{camera_data[1]}/{camera_data[2]}'
-                print("fetch data = ", camera_rtsp)
+                # print("fetch data = ", camera_rtsp)
                 return camera_rtsp
 
         except Exception as e:
@@ -273,7 +273,7 @@ class Camera():
         finally:
             cursor.close()
             connection.close()
-        print("fetch data = ", camera_data)
+        # print("fetch data = ", camera_data)
         return camera_data
 
     def update_camera(self, camera_data):
@@ -295,7 +295,7 @@ class Camera():
 
             # Ensure the camera_data dictionary includes the unique identifier for the camera
             if "Camera_name" not in camera_data:
-                print("Camera_name is required to update camera details.")
+                # print("Camera_name is required to update camera details.")
                 return False
 
             # Prepare the query to update camera data
@@ -312,11 +312,11 @@ class Camera():
                 camera_data["Camera_name"]
             ))
 
-            print(f"Camera with ID {camera_data['Camera_name']} updated successfully.")
+            # print(f"Camera with ID {camera_data['Camera_name']} updated successfully.")
             return True
         except pyodbc.InterfaceError as e:
             # Handle database interface errors (e.g., issues with the connection)
-            print(f"Database interface error: {e}")
+            # print(f"Database interface error: {e}")
             return False
         except pyodbc.DatabaseError as e:
             # Handle database-related errors (e.g., issues with executing the query)
@@ -324,19 +324,19 @@ class Camera():
             return False
         except pyodbc.OperationalError as e:
             # Handle operational errors (e.g., issues with connecting to the server)
-            print(f"Operational error: {e}")
+            # print(f"Operational error: {e}")
             return False
         except pyodbc.Error as e:
             # General pyodbc errors
-            print(f"SQL execution error: {e}")
+            # print(f"SQL execution error: {e}")
             return False
         except KeyError as e:
             # Handle missing keys in the camera_data dictionary
-            print(f"Missing expected field in camera data: {e}")
+            # print(f"Missing expected field in camera data: {e}")
             return False
         except Exception as e:
             # Catch all other exceptions
-            print(f"An unexpected error occurred: {e}")
+            # print(f"An unexpected error occurred: {e}")
             return False
         finally:
             # Clean up and close the connection
@@ -355,7 +355,7 @@ class Camera():
         cursor = None
 
         if not camera_names:
-            print("No camera names provided for deletion.")
+            # print("No camera names provided for deletion.")
             return False
 
         try:
@@ -379,26 +379,26 @@ class Camera():
             deleted_rows = cursor.rowcount  # Check how many rows were deleted
 
             if deleted_rows > 0:
-                print(f"Deleted {deleted_rows} cameras: {', '.join(camera_names)} successfully.")
+                # print(f"Deleted {deleted_rows} cameras: {', '.join(camera_names)} successfully.")
                 return True
             else:
-                print("No matching cameras found for deletion.")
+                # print("No matching cameras found for deletion.")
                 return False
 
         except pyodbc.InterfaceError as e:
-            print(f"Database interface error: {e}")
+            # print(f"Database interface error: {e}")
             return False
         except pyodbc.DatabaseError as e:
-            print(f"Database error: {e}")
+            # print(f"Database error: {e}")
             return False
         except pyodbc.OperationalError as e:
-            print(f"Operational error: {e}")
+            # print(f"Operational error: {e}")
             return False
         except pyodbc.Error as e:
-            print(f"SQL execution error: {e}")
+            # print(f"SQL execution error: {e}")
             return False
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            # print(f"An unexpected error occurred: {e}")
             return False
         finally:
             if cursor:

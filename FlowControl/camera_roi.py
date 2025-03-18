@@ -47,25 +47,28 @@ class CameraRoiController:
                                     "coords": (x1, y1, x2, y2),
                                     "selected": True
                                 }
-                                print(
-                                    f"Stored ROI state for {camera_name}: {self.obj_CameraRoiInterface._roi_state[camera_name]}")
+                                # print(
+                                    # f"Stored ROI state for {camera_name}: {self.obj_CameraRoiInterface._roi_state[camera_name]}")
                         except (json.JSONDecodeError, KeyError) as e:
-                            print(f"Error processing ROI coordinates for camera {camera_name}: {e}")
+                            pass
+                            # print(f"Error processing ROI coordinates for camera {camera_name}: {e}")
 
                     if camera_name and rtsp_url:
                         camera_list[camera_name] = rtsp_url
                     else:
-                        print(f"Incomplete data for camera: {camera}")
+                        pass
+                        # print(f"Incomplete data for camera: {camera}")
 
                 except Exception as e:
                     print(f"Error processing camera {camera}: {e}")
                     continue
 
-            print("Final ROI state before updating interface:", self.obj_CameraRoiInterface._roi_state)
+            # print("Final ROI state before updating interface:", self.obj_CameraRoiInterface._roi_state)
             self.obj_CameraRoiInterface.update_camera_list(camera_list)
 
         except Exception as e:
-            print(f"Error loading camera details: {e}")
+            pass
+            # print(f"Error loading camera details: {e}")
 
 
     def load_rois_from_db(self) -> None:
@@ -75,10 +78,10 @@ class CameraRoiController:
             roi_data = self.obj_Core.obj_Camera.fetch_all_ROI_data()
 
             if not roi_data:
-                print("No ROI data found in database")
+                # print("No ROI data found in database")
                 return
 
-            print("ROI data :", roi_data)
+            # print("ROI data :", roi_data)
 
             # Create ROI dictionary
             self.obj_CameraRoiInterface.roi_list = {}
@@ -92,21 +95,24 @@ class CameraRoiController:
                     camera_name = roi.get("Camera_name")
                     roi_coordinates = roi.get("Coordinates")
                 else:
-                    print(f"Unrecognized ROI data format: {roi}")
+                    # print(f"Unrecognized ROI data format: {roi}")
                     continue
 
                 # Add ROI to the list
                 if camera_name and roi_coordinates:
                     self.obj_CameraRoiInterface.roi_list[camera_name] = roi_coordinates
                 else:
-                    print(f"Incomplete data for ROI: {roi}")
+                    pass
+                    # print(f"Incomplete data for ROI: {roi}")
 
             # Update the interface with the ROI list
             if hasattr(self.obj_CameraRoiInterface, "update_roi_list"):
                 self.obj_CameraRoiInterface.restore_roi()
             else:
-                print("update_roi_list method not found in obj_CameraRoiInterface")
+                pass
+                # print("update_roi_list method not found in obj_CameraRoiInterface")
 
         except Exception as e:
-            print(f"Error loading ROI details: {e}")
+            pass
+            # print(f"Error loading ROI details: {e}")
 

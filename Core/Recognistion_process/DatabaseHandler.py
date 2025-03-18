@@ -1,3 +1,7 @@
+import random
+
+import pyodbc
+
 
 class DatabaseHandler:
     def __init__(self):
@@ -64,19 +68,36 @@ class DatabaseHandler:
         return f"USE {DB_name}"
 
 
+    def check_vehicle_availability(self, vehicle_number) -> int:
+        try:
+            connection = pyodbc.connect(f"""DRIVER={{ODBC Driver 17 for SQL Server}};
+                                                SERVER=ITDT14;
+                                                UID=sa;
+                                                PWD=root1234""",
+                                        autocommit=True)
+            cursor = connection.cursor()
+            select_db_query = f"USE ALPR_DB_NEW;"
+            cursor.execute(select_db_query)
 
-    # @staticmethod
-    # def insert_vehicle_data(cursor, insert_query, vehicle_data, detection_result, status, alarm_code, connection):
-    #     cursor.execute(insert_query, (
-    #         vehicle_data['vehicle_id'],
-    #         detection_result['plate_number'],
-    #         detection_result['color'],
-    #         detection_result['country'],
-    #         detection_result['vehicle_img'],
-    #         detection_result['plate_img'],
-    #         1,
-    #         detection_result['system_time'],
-    #         status,
-    #         alarm_code
-    #     ))
-    #     connection.commit()
+            # Check if the vehicle already exists
+            check_vehicle_query = f"""SELECT vehicle_status FROM [ALPR_DB_NEW].[dbo].[vehicle_details]
+                                          WHERE vehicle_number = ?"""
+            cursor.execute(check_vehicle_query, vehicle_number)
+            vehicle_status = cursor.fetchone()
+
+            if vehicle_status:
+                if vehicle_status[0] == 1:
+                    return 2
+                else:
+                    return 1
+            else:
+
+                return 0
+
+        except pyodbc.Error as e:
+            print(e)
+        except Exception as e:
+            print(e)
+
+
+

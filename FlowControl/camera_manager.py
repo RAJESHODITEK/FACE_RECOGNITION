@@ -669,12 +669,21 @@ class CameraManagerController:
             self.camera_manager_interface.selected_cameras.clear()
             self.camera_manager_interface.update_table(self.camera_manager_interface.dummy_camera_details)
 
+
+
     def update_camera_data_list(self):
         datas = self.obj_Core.obj_Camera.fetch_all_Camera_data()
         self.camera_manager_interface.dummy_camera_details.clear()
-        slno = 0
+        self.component = {
+            "username": "",
+            "password": "",
+            "ip": "",
+            "port": '',
+            "path": ""
+        }
+        slno=0
         for data in datas:
-            slno = slno + 1
+            slno=slno+1
             new_camera_details = {
                 'sl_no': slno,
                 'name': data['Camera_name'],
@@ -682,10 +691,10 @@ class CameraManagerController:
                 'direction': data['Camera_direction'],
                 'height_start_percentage': data['ROIStartPercentageHeight'],
                 'height_end_percentage': data['ROIEndPercentageHeight'],
-                'width_start_percentage': data['ROIStartPercentageWidth'],
-                'width_end_percentage': data['ROIEndPercentageWidth'],
-                'start_percentage': data['ROIStartPercentageWidth'],
-                'end_percentage': data['ROIEndPercentageWidth']
+                'width_start_percentage': 0,
+                'width_end_percentage': 100,
+                'start_percentage':  data['ROIStartPercentageWidth'],
+                'end_percentage':  data['ROIEndPercentageWidth']
             }
             # Append the new data to the list
             self.camera_manager_interface.dummy_camera_details.append(new_camera_details)

@@ -60,7 +60,7 @@ class Interface:
         frame.tkraise()
 
 
-    def on_error(self, master: str, error_heading: str = "Error", error_msg: str = "Something went wrong", bg_color : str = "#FF4B4B", i_height : int = 90) -> None:
+    def on_error(self, master: str, error_heading: str = "Error", error_msg: str = "Something went wrong", bg_color : str = "#FF4B4B", i_height : int = 120) -> None:
             ErrorInterface(self.dict_frames[master], error_heading, error_msg, bg_color, i_height)
 
 

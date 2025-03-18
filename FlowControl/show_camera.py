@@ -20,7 +20,7 @@ class ShowCameraController:
 
     def camera_data_load(self):
         camera_data = self.obj_Camera.fetch_all_Camera_data()
-        print("Fetched camera data:", camera_data)  # Debugging step
+        # print("Fetched camera data:", camera_data)  # Debugging step
         self.obj_Show_camera_interface.update_camera_list(camera_data)
 
     # def validate_password(self, event) -> bool:

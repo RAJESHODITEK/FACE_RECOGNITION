@@ -10,7 +10,7 @@ from PIL import Image
 from io import BytesIO
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from shared_queue import vehicle_tracking_details_queue         #The mutual queue which will be accessed by both producer and consumer
+from shared_queue import vehicle_tracking_details_queue
 from Core.Recognistion_process.ConfigLoader import  ConfigLoader
 from Core.Recognistion_process.DatabaseHandler import DatabaseHandler
 from Core.Recognistion_process.ImageProcessing import ImageProcessing
@@ -68,6 +68,7 @@ class LicensePlateRecognizer:
         """
 
         try:
+
             detection_result = None
             for i in range(1, 6):
                 img_base64 = vehicle_data.get(f'vehicle_img{i}', ' ')
@@ -79,7 +80,7 @@ class LicensePlateRecognizer:
                 # Check if detection_result is valid and has plate_number
                 if detection_result is not None and 'plate_number' in detection_result and detection_result['plate_number'] != 'N/A':
                     status = 'Entry' if vehicle_data.get('status', 0) == 0 else 'Exit'
-                    alarm_code = random.randint(0, 2)
+                    alarm_code =  self.db_handler.check_vehicle_availability(detection_result['plate_number'])
                     is_recognizeed = 1 if detection_result['plate_number'] != 'N/A' else 0
                     insert_data = {
                         "vehicle_id": vehicle_data.get('vehicle_id', None),
@@ -104,7 +105,7 @@ class LicensePlateRecognizer:
             # If no plate was detected, insert N/A data into the database
             if detection_result and detection_result.get('plate_number') == 'N/A':
                 status = 'Entry' if vehicle_data.get('status', 0) == 0 else 'Exit'
-                alarm_code = random.randint(0, 2)
+                alarm_code = self.db_handler.check_vehicle_availability(detection_result['plate_number'])
                 is_recognizeed = 0
                 insert_data = {
                     "vehicle_id": vehicle_data.get('vehicle_id', None),
