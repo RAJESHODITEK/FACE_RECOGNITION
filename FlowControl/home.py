@@ -353,6 +353,7 @@ class HomeController:
                     "age": db_data.get("person_age"),  # Note the field name change
                     "gender": db_data.get("person_gender"),  # Note the field name change
                     "start_time": db_data.get("start_time"),
+                    "end_time": db_data.get("end_time"),
                     "status": db_data.get("status"),
                     "alert_type": "Unrecognized Person",
                     "acknowledgment_note": db_data.get("acknowledgment_message", ""),

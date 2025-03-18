@@ -857,6 +857,7 @@ class NotificationInterface(CTkFrame):
 
         if alarm_data_list is None:
             alarm_data_list = getattr(self, 'vehicle_data', [])
+        print(alarm_data_list,"-------------------------------------------------------------")
 
         self.i_total_data = len(alarm_data_list)
 
@@ -887,11 +888,14 @@ class NotificationInterface(CTkFrame):
             'highlight': '#FFC107',  # Warning yellow for highlights
             'hover_border': '#FF4081',  # Bright pink for hover border
             'selected_border': '#C2185B',  # Deeper magenta for selected state
+            'time_border': '#FF6B6B',  # Striking red for time box border
+            'time_bg': '#FFF0F0',  # Soft red background for time box
         }
 
         # Create striking card layouts for each alarm
         for i, data in enumerate(current_page_data, start=start_idx):
             # Add increased spacing between cards for better separation
+            print(data,"------------------------------------------------------d")
             if i > start_idx:
                 spacing_frame = CTkFrame(
                     self.frame_content,
@@ -923,7 +927,6 @@ class NotificationInterface(CTkFrame):
 
             self.selected_frame = None
 
-
             # Create refined event handlers with more pronounced visual effects
             def create_click_handler(vehicle_event_id, frame, container, index):
                 def handler(event):
@@ -942,7 +945,7 @@ class NotificationInterface(CTkFrame):
                                     for child in widget.winfo_children():
                                         if isinstance(child, CTkFrame) and (
                                                 child.grid_info().get('column') == 0 or child.grid_info().get(
-                                                'column') == 2):
+                                            'column') == 2):
                                             child.configure(border_color=colors['primary'], border_width=2)
 
                     # Apply selection styling
@@ -976,13 +979,13 @@ class NotificationInterface(CTkFrame):
                     frame.configure(fg_color=colors['bg_light'])
 
                     # Enhanced border highlight effect with animation-like thickness
-                    container.configure(border_color=colors['hover_border'], border_width=4)
+                    container.configure(border_color="red", border_width=2)
 
                     # Enhance image frames on hover
                     for child in frame.winfo_children():
                         if isinstance(child, CTkFrame) and (
                                 child.grid_info().get('column') == 0 or child.grid_info().get('column') == 2):
-                            child.configure(border_color=colors['hover_border'], border_width=3)
+                            child.configure(border_color="red", border_width=2)
 
                 return handler
 
@@ -1051,12 +1054,13 @@ class NotificationInterface(CTkFrame):
             )
             label_vehicle.pack(padx=8, pady=8)  # Increased padding
 
-            # Central information panel
+            # Central information panel - ADJUSTED PADDING TO MOVE UP
             frame_details = CTkFrame(
                 frame_alarm,
                 fg_color="transparent",
             )
-            frame_details.grid(row=0, column=1, sticky="nsew", padx=12, pady=16)
+            # Reduced top padding to move the entire central panel up
+            frame_details.grid(row=0, column=1, sticky="nsew", padx=12, pady=(0, 16))
 
             # Status indicator with enhanced corner radius and border
             status_frame = CTkFrame(
@@ -1067,7 +1071,7 @@ class NotificationInterface(CTkFrame):
                 border_width=2,  # Thicker border
                 border_color=colors['primary']
             )
-            status_frame.grid(row=0, column=0, columnspan=2, sticky="w", padx=2, pady=(0, 20))
+            status_frame.grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=(0, 20))
 
             # Status indicator dot - larger and more prominent
             status_icon = CTkFrame(
@@ -1096,18 +1100,31 @@ class NotificationInterface(CTkFrame):
             )
             event_type_label.pack(side="left", pady=2, padx=6)  # Increased padding
 
-            # Information grid with security styling
+            # Information grid with security styling - ADJUSTED TO MOVE UP
             info_grid = CTkFrame(
                 frame_details,
                 fg_color="transparent"
             )
-            info_grid.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=8)  # Increased padding
+            # Reduced top padding to move the info grid up
+            info_grid.grid(row=1, column=0, columnspan=2, sticky="nsew", pady=(0, 8))
             info_grid.columnconfigure(1, weight=1)
             info_grid.columnconfigure(3, weight=1)
 
+            # Create a layout with 3 columns
+            info_grid.columnconfigure(0, weight=1)  # Left column
+            info_grid.columnconfigure(1, weight=1)  # Middle column
+            info_grid.columnconfigure(2, weight=1)  # Right column
+
+            # Left column - Event & Person Info
+            left_info = CTkFrame(
+                info_grid,
+                fg_color="transparent"
+            )
+            left_info.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
+
             # Event Number
             label_event_number = CTkLabel(
-                info_grid,
+                left_info,
                 text="Event Number      :",
                 font=("Helvetica", 14),
                 text_color=colors['text_medium']
@@ -1115,7 +1132,7 @@ class NotificationInterface(CTkFrame):
             label_event_number.grid(row=0, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
 
             value_event_number = CTkLabel(
-                info_grid,
+                left_info,
                 text=data.get("event_id", "Unknown"),
                 font=("Helvetica", 15, "bold"),
                 text_color=colors['text_dark']
@@ -1124,7 +1141,7 @@ class NotificationInterface(CTkFrame):
 
             # Person Name
             label_person_name = CTkLabel(
-                info_grid,
+                left_info,
                 text="Person Name       :",
                 font=("Helvetica", 14),
                 text_color=colors['text_medium']
@@ -1132,7 +1149,7 @@ class NotificationInterface(CTkFrame):
             label_person_name.grid(row=1, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
 
             value_person_name = CTkLabel(
-                info_grid,
+                left_info,
                 text=data.get("person_name", "Unknown"),
                 font=("Helvetica", 15, "bold"),
                 text_color=colors['text_dark']
@@ -1141,7 +1158,7 @@ class NotificationInterface(CTkFrame):
 
             # Person Age
             label_person_age = CTkLabel(
-                info_grid,
+                left_info,
                 text="Person Age          :",
                 font=("Helvetica", 14),
                 text_color=colors['text_medium']
@@ -1149,7 +1166,7 @@ class NotificationInterface(CTkFrame):
             label_person_age.grid(row=2, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
 
             value_person_age = CTkLabel(
-                info_grid,
+                left_info,
                 text=data.get("age", "Unknown"),
                 font=("Helvetica", 15, "bold"),
                 text_color=colors['text_dark']
@@ -1158,7 +1175,7 @@ class NotificationInterface(CTkFrame):
 
             # Person Gender
             label_person_gender = CTkLabel(
-                info_grid,
+                left_info,
                 text="Person Gender    :",
                 font=("Helvetica", 14),
                 text_color=colors['text_medium']
@@ -1166,46 +1183,134 @@ class NotificationInterface(CTkFrame):
             label_person_gender.grid(row=3, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
 
             value_person_gender = CTkLabel(
-                info_grid,
+                left_info,
                 text=data.get("gender", "Unknown"),
                 font=("Helvetica", 15, "bold"),
                 text_color=colors['text_dark']
             )
             value_person_gender.grid(row=3, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
 
-            # Start Time
-            label_start_time = CTkLabel(
+            # MIDDLE COLUMN - Time Information with striking border
+            # Adjusted position to align with images
+            time_frame = CTkFrame(
                 info_grid,
-                text="Start Time            :",
-                font=("Helvetica", 14),
-                text_color=colors['text_medium']
+                fg_color=colors['time_bg'],
+                corner_radius=12,
+                border_width=2,
+                border_color=colors['time_border']
             )
-            label_start_time.grid(row=4, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
+            # Moved the time frame up by adjusting padding and using sticky="n" to align to top
+            time_frame.grid(row=0, column=1, sticky="n", padx=10, pady=(0, 0))
 
-            value_start_time = CTkLabel(
-                info_grid,
-                text=data.get("start_time", "Unknown"),
-                font=("Helvetica", 15, "bold"),
-                text_color=colors['text_dark']
+            # Time header
+            time_header = CTkFrame(
+                time_frame,
+                fg_color=colors['primary'],
+                corner_radius=8,
+                height=30
             )
-            value_start_time.grid(row=4, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
+            time_header.pack(fill="x", padx=6, pady=(6, 10))
+
+            CTkLabel(
+                time_header,
+                text="TIMELINE",
+                font=("Helvetica", 14, "bold"),
+                text_color=colors['bg_white']
+            ).pack(pady=2)
+
+            from datetime import datetime
+
+            # Convert timestamp to human-readable format
+            def format_timestamp(timestamp):
+                if isinstance(timestamp, (int, float)):
+                    return datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %I:%M %p')
+                elif isinstance(timestamp, str):
+                    try:
+                        # Convert string to float (handles decimal seconds)
+                        timestamp = float(timestamp)
+                        return datetime.fromtimestamp(timestamp).strftime('%d-%m-%Y %I:%M %p')
+                    except ValueError:
+                        return "Invalid format"
+                return "Unknown"
+
+            start_time = format_timestamp(data.get("start_time"))
+            end_time = format_timestamp(data.get("end_time"))
+
+            # Time content
+            time_content = CTkFrame(
+                time_frame,
+                fg_color="transparent"
+            )
+            time_content.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+
+            # Start Time
+            start_time_frame = CTkFrame(
+                time_content,
+                fg_color="transparent"
+            )
+            start_time_frame.pack(fill="x", pady=(5, 5))
+
+            CTkLabel(
+                start_time_frame,
+                text="Start Time:",
+                font=("Helvetica", 14, "bold"),
+                text_color=colors['text_dark']
+            ).pack(side="left", padx=(0, 5))
+
+            CTkLabel(
+                start_time_frame,
+                text=start_time,
+                font=("Helvetica", 15),
+                text_color=colors['text_dark']
+            ).pack(side="left")
 
             # End Time
-            label_end_time = CTkLabel(
-                info_grid,
-                text="End Time     :",
-                font=("Helvetica", 14),
-                text_color=colors['text_medium']
+            end_time_frame = CTkFrame(
+                time_content,
+                fg_color="transparent"
             )
-            label_end_time.grid(row=5, column=0, sticky="w", pady=(0, 6), padx=(0, 6))
+            end_time_frame.pack(fill="x", pady=(5, 5))
 
-            value_end_time = CTkLabel(
-                info_grid,
-                text=data.get("end_time", "Unknown"),
-                font=("Helvetica", 15, "bold"),
+            CTkLabel(
+                end_time_frame,
+                text="End Time: ",
+                font=("Helvetica", 14, "bold"),
                 text_color=colors['text_dark']
+            ).pack(side="left", padx=(0, 5))
+
+            CTkLabel(
+                end_time_frame,
+                text=end_time,
+                font=("Helvetica", 15),
+                text_color=colors['text_dark']
+            ).pack(side="left")
+
+            # Duration frame
+            duration_frame = CTkFrame(
+                time_content,
+                fg_color="transparent"
             )
-            value_end_time.grid(row=5, column=1, sticky="w", pady=(0, 6), padx=(0, 6))
+            duration_frame.pack(fill="x", pady=(5, 5))
+
+            # Calculate duration if both start and end times are available
+            duration = "Calculating..."
+            if data.get("start_time") and data.get("end_time"):
+                # This is a placeholder - you'll need actual duration calculation logic
+                duration = "00:15:22"  # Example duration
+
+            CTkLabel(
+                duration_frame,
+                text="Duration:  ",
+                font=("Helvetica", 14, "bold"),
+                text_color=colors['text_dark']
+            ).pack(side="left", padx=(0, 5))
+
+            CTkLabel(
+                duration_frame,
+                text=duration,
+                font=("Helvetica", 15),
+                text_color=colors['primary']
+            ).pack(side="left")
 
             # ENHANCED RIGHT IMAGE (PERSON) DISPLAY
             # Single frame with thicker border and improved padding
@@ -1232,7 +1337,8 @@ class NotificationInterface(CTkFrame):
             widgets_to_bind = [
                 label_vehicle, label_plate, frame_details,
                 event_type_label, status_frame, info_grid,
-                vehicle_frame, person_frame, container_frame
+                vehicle_frame, person_frame, container_frame,
+                time_frame, time_header, time_content
             ]
 
             for widget in widgets_to_bind:

@@ -970,6 +970,7 @@ class HistoricalEventInterface(CTkFrame):
                 "gender": {"title": "Gender", "value": row_data.get("person_gender", ""), "icon": "⚧️"},
                 "person_type": {"title": "Status", "value": person_type, "icon": status_config[alarm_value]["icon"]},
                 "Camera Name": {"title": "Camera Name", "value": "Entry Gate", "icon": "📸"}
+
             }
 
             # Create elegant info fields with modern styling
@@ -1015,6 +1016,13 @@ class HistoricalEventInterface(CTkFrame):
 
                 # Special styling for status field
                 if key == "person_type":
+                    CTkLabel(
+                        frame_cell,
+                        text=":  ",
+                        font=CTkFont(family="Helvetica", size=14, weight="bold"),
+                        text_color=COLORS["primary_dark"],
+                        anchor="w"
+                    ).pack(side="left", padx=(0, 5))
                     status_label = CTkLabel(
                         frame_cell,
                         text=data["value"],
@@ -1025,11 +1033,19 @@ class HistoricalEventInterface(CTkFrame):
                         width=150,
                         height=26
                     )
-                    status_label.pack(side="left", padx=10)
+                    status_label.pack(side="left", padx=(0,10))
                 else:
                     CTkLabel(
                         frame_cell,
-                        text=":   " + str(data["value"]),
+                        text=":  " ,
+                        font=CTkFont(family="Helvetica", size=14, weight="bold"),
+                        text_color=COLORS["primary_dark"],
+                        anchor="w"
+                    ).pack(side="left", padx=(0, 5))
+
+                    CTkLabel(
+                        frame_cell,
+                        text=str(data["value"]),
                         font=CTkFont(family="Helvetica", size=13),
                         text_color=COLORS["text_secondary"],
                         anchor="w"
@@ -1139,18 +1155,25 @@ class HistoricalEventInterface(CTkFrame):
                 anchor="w"
             ).pack(side="top", anchor="w")
 
-            # Is Acknowledged label
             acknowledged_frame = CTkFrame(
                 timeline_container,
                 fg_color="transparent"
             )
             acknowledged_frame.pack(fill="x", padx=15, pady=(5, 10))
 
+            # Determine acknowledgment status and color
+            has_acknowledgment = "No"
+            acknowledgment_color = COLORS["danger"]  # Default to red for "No"
+
+            if row_data.get("acknowledgment_message") is not None:
+                has_acknowledgment = "Yes"
+                acknowledgment_color = COLORS["success"]  # Green for "Yes"
+
             CTkLabel(
                 acknowledged_frame,
-                text="●",  # Emoji added here
-                font=CTkFont(family="Helvetica", size=23,weight="bold"),
-                text_color=COLORS["text_primary"],
+                text="●",  # Dot indicator
+                font=CTkFont(family="Helvetica", size=23, weight="bold"),
+                text_color=acknowledgment_color,  # Use dynamic color based on status
                 anchor="w"
             ).pack(side="left", padx=(5, 5))
 
@@ -1165,9 +1188,9 @@ class HistoricalEventInterface(CTkFrame):
 
             CTkLabel(
                 acknowledged_frame,
-                text="No",
-                font=CTkFont(family="Helvetica", size=12),
-                text_color=COLORS["text_secondary"],
+                text=has_acknowledgment,  # Display dynamic Yes/No value
+                font=CTkFont(family="Helvetica", size=12, weight="bold"),
+                text_color=acknowledgment_color,  # Use dynamic color for the status text
                 anchor="w"
             ).pack(side="left", padx=(5, 0))
 
@@ -1199,33 +1222,6 @@ class HistoricalEventInterface(CTkFrame):
                 corner_radius=12
             )
             self.label_imge.pack(padx=8, pady=8, expand=True)
-
-            #=========================================================================
-
-            if row_index == 0 or row_index == 2:  # Index 0 is 1st row, index 2 is 3rd row
-                # Create a badge frame with a green background
-                verify_badge = CTkFrame(
-                    plate_container,
-                    fg_color=COLORS["success"],  # Use the success color (green)
-                    corner_radius=12,
-                    height=24,
-                    width=24
-                )
-                # Position in top left, with a small offset from the edge
-                verify_badge.place(x=12, y=12)
-
-                # Add a checkmark symbol inside the badge
-                CTkLabel(
-                    verify_badge,
-                    text="✓",
-                    font=CTkFont(family="Helvetica", size=14, weight="bold"),
-                    text_color="white",
-                    height=20
-                ).place(relx=0.5, rely=0.5, anchor="center")
-
-
-                #=======================================================================
-
 
             view_button = CTkButton(
                 plate_container,
@@ -1477,9 +1473,11 @@ class HistoricalEventInterface(CTkFrame):
         # Star symbol
         star_label = CTkLabel(
             star_message_frame,
-            text="⭐",
-            font=("Inter", 15, "bold"),
+            #text="⭐",
+            text="Acknowledge Message : ",
+            font=("Inter", 17, "bold"),
             text_color="#FFD700",  # Golden color
+           # text_color="#000000",
             bg_color="transparent"
         )
         star_label.pack(side="left", padx=(0, 5))  # Add spacing between star and text
@@ -1487,7 +1485,7 @@ class HistoricalEventInterface(CTkFrame):
         # Message text
         message_label = CTkLabel(
             star_message_frame,
-            text="Hyyy I Allowed this people for an emergency",
+            text=event_data['acknowledgment_message'],
             font=("Inter", 12, "bold"),
             text_color="#FFFFFF",
             bg_color="transparent"

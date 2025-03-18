@@ -51,7 +51,7 @@ class NotificationController:
                 "person_age": db_data.get("person_age"),
                 "person_gender": db_data.get("person_gender"),
                 "start_time": db_data.get("start_time"),
-                "end_time":db_data.get("end_time"),
+                "end_time":db_data.get("end_time","1234"),
                 "status": db_data.get("status"),
                 "alert_type": "Unrecognized Person",
                 "acknowledgment_note": db_data.get("acknowledgment_message", ""),

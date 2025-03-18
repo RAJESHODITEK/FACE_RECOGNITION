@@ -114,7 +114,8 @@ class Event():
     #
     #     return list_events, start_date
 
-    def fetch_event_combo_details(self, i_start_index: int, dict_filter_criteria: dict, fetch_mode="standard", page_size=5):
+    def fetch_event_combo_details(self, i_start_index: int, dict_filter_criteria: dict, fetch_mode="standard",
+                                  page_size=5):
         """
         Fetch events with optional filtering criteria.
 
@@ -202,7 +203,6 @@ class Event():
                 name_pattern = f"%{dict_filter_criteria['str_person_name']}%"
                 params.extend([name_pattern, name_pattern])
 
-
             if fetch_mode == "combo" and dict_filter_criteria.get("str_gender"):
                 conditions.append("p.gender LIKE ?")
                 params.append(f"%{dict_filter_criteria['str_gender']}%")
@@ -230,6 +230,15 @@ class Event():
                         for key in ["start_time", "end_time", "acknowledgment_time"]:
                             if key in record_dict and isinstance(record_dict[key], (str, bytes)):
                                 record_dict[key] = str(record_dict[key]).split('.')[0]
+
+                    # Process acknowledgment_message status
+                    if record_dict.get("acknowledgment_message") is None:
+                        record_dict["has_acknowledgment"] = "no"
+                        print(f"Event ID {record_dict.get('event_id', 'unknown')}: no")
+                    else:
+                        record_dict["has_acknowledgment"] = "yes"
+                        print(f"Event ID {record_dict.get('event_id', 'unknown')}: yes")
+                        print(f"Message: {record_dict['acknowledgment_message']}")
 
                     # For standard mode, only include records with valid start_time
                     if fetch_mode != "standard" or record_dict.get("start_time", "N/A") != "N/A":
