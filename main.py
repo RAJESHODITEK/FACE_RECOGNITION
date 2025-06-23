@@ -1,7 +1,5 @@
 
 
-#Testing git hub
-
 import threading
 import time
 
